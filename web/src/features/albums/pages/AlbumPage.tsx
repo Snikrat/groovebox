@@ -12,6 +12,7 @@ import { ListenLog } from '../../listens/components/ListenLog';
 import { ReviewForm } from '../../reviews/components/ReviewForm';
 import { ShareCardButton } from '../../share/components/ShareCardButton';
 import { WishlistButton } from '../../wishlist/components/WishlistButton';
+import { OtherReviews } from '../components/OtherReviews';
 import { TrackList } from '../components/TrackList';
 import { getAlbum } from '../services/albumsApi';
 
@@ -91,6 +92,11 @@ export function AlbumPage() {
       <section className="section">
         <h2 className="section__title">Faixas</h2>
         <TrackList musicbrainzId={album.musicbrainzId} albumId={album.id} />
+      </section>
+
+      <section className="section">
+        <h2 className="section__title">Outras avaliações</h2>
+        <OtherReviews musicbrainzId={album.musicbrainzId} />
       </section>
     </article>
   );

@@ -32,6 +32,7 @@ export function Header() {
           <NavLink to="/" end>
             Home
           </NavLink>
+          <NavLink to="/feed">Feed</NavLink>
           <NavLink to="/library">Minha biblioteca</NavLink>
           <NavLink to="/diary">Diário</NavLink>
         </nav>

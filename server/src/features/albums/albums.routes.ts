@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { HttpError } from '../../shared/httpError.js';
 import { parseMbid } from '../../shared/validation.js';
+import { listPublicReviewsForAlbum } from '../reviews/reviews.repository.js';
 import { getAlbumTracks, getOrImportAlbum, searchAlbums } from './albums.service.js';
 
 export const albumsRouter = Router();
@@ -22,4 +23,10 @@ albumsRouter.get('/:musicbrainzId', async (req, res) => {
 
 albumsRouter.get('/:musicbrainzId/tracks', async (req, res) => {
   res.json(await getAlbumTracks(parseMbid(req.params.musicbrainzId)));
+});
+
+// Avaliações de outras pessoas para o álbum; pública. A do próprio usuário fica em /api/reviews/:albumId.
+albumsRouter.get('/:musicbrainzId/reviews', async (req, res) => {
+  const album = await getOrImportAlbum(parseMbid(req.params.musicbrainzId));
+  res.json(await listPublicReviewsForAlbum(album.id, req.user?.id ?? null, req.user?.id ?? null));
 });

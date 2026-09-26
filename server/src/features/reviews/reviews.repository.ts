@@ -1,8 +1,8 @@
 import { pool } from '../../db/pool.js';
 import { albumSummaryJson } from '../albums/albums.repository.js';
-import type { Review, ReviewInput, ReviewWithAlbum } from './reviews.types.js';
+import type { PublicReview, Review, ReviewInput, ReviewWithAlbum } from './reviews.types.js';
 
-const reviewColumns = `r.id,
+export const reviewColumns = `r.id,
   r.album_id   AS "albumId",
   r.rating,
   r.review,
@@ -17,6 +17,28 @@ export async function listReviews(userId: number): Promise<ReviewWithAlbum[]> {
       WHERE r.user_id = $1
       ORDER BY r.updated_at DESC`,
     [userId],
+  );
+  return rows;
+}
+
+/** Avaliações de outras pessoas para um álbum, com dados sociais. Pública: viewerId pode ser null. */
+export async function listPublicReviewsForAlbum(
+  albumId: number,
+  excludeUserId: number | null,
+  viewerId: number | null,
+): Promise<PublicReview[]> {
+  const { rows } = await pool.query<PublicReview>(
+    `SELECT ${reviewColumns}, ${albumSummaryJson} AS album,
+            json_build_object('username', u.username, 'name', u.name) AS author,
+            (SELECT count(*)::int FROM review_likes WHERE review_id = r.id) AS "likeCount",
+            EXISTS(SELECT 1 FROM review_likes WHERE review_id = r.id AND user_id = $3) AS "likedByMe",
+            (SELECT count(*)::int FROM review_comments WHERE review_id = r.id) AS "commentCount"
+       FROM reviews r
+       JOIN users u  ON u.id = r.user_id
+       JOIN albums a ON a.id = r.album_id
+      WHERE r.album_id = $1 AND r.user_id IS DISTINCT FROM $2
+      ORDER BY r.created_at DESC`,
+    [albumId, excludeUserId, viewerId],
   );
   return rows;
 }

@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { HttpError } from '../../shared/httpError.js';
 import { listFavorites } from '../favorites/favorites.repository.js';
 import { listFeatured } from '../featured/featured.repository.js';
+import { countFollowStats, isFollowing } from '../follows/follows.repository.js';
+import { listListsByUser } from '../lists/lists.repository.js';
 import { listReviews } from '../reviews/reviews.repository.js';
 import { findPublicProfile } from './profile.repository.js';
 
@@ -14,8 +16,10 @@ async function requireProfile(username: string) {
 }
 
 profileRouter.get('/:username', async (req, res) => {
-  const { profile } = await requireProfile(req.params.username);
-  res.json(profile);
+  const { id, profile } = await requireProfile(req.params.username);
+  const stats = await countFollowStats(id);
+  const isFollowedByMe = req.user ? await isFollowing(req.user.id, id) : false;
+  res.json({ ...profile, ...stats, isFollowedByMe });
 });
 
 profileRouter.get('/:username/reviews', async (req, res) => {
@@ -31,4 +35,9 @@ profileRouter.get('/:username/favorites', async (req, res) => {
 profileRouter.get('/:username/featured', async (req, res) => {
   const { id } = await requireProfile(req.params.username);
   res.json(await listFeatured(id));
+});
+
+profileRouter.get('/:username/lists', async (req, res) => {
+  const { id } = await requireProfile(req.params.username);
+  res.json(await listListsByUser(id));
 });

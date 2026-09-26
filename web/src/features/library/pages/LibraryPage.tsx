@@ -5,6 +5,7 @@ import { formatDate } from '../../../shared/utils/format';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { listFavorites } from '../../favorites/services/favoritesApi';
 import { FeaturedEditor } from '../../featured/components/FeaturedEditor';
+import { ListsSection } from '../../lists/components/ListsSection';
 import { listReviews } from '../../reviews/services/reviewsApi';
 import { listWishlist } from '../../wishlist/services/wishlistApi';
 
@@ -91,6 +92,13 @@ export function LibraryPage() {
             ))}
           </div>
         )}
+      </section>
+
+      <section className="section">
+        <div className="section__header">
+          <h2 className="section__title">Minhas listas</h2>
+        </div>
+        <ListsSection />
       </section>
     </>
   );

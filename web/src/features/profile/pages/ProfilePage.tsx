@@ -5,7 +5,14 @@ import { getErrorMessage } from '../../../shared/services/api';
 import { formatDate } from '../../../shared/utils/format';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
-import { getPublicFavorites, getPublicFeatured, getPublicProfile, getPublicReviews } from '../services/profileApi';
+import { FollowButton } from '../../follows/components/FollowButton';
+import {
+  getPublicFavorites,
+  getPublicFeatured,
+  getPublicLists,
+  getPublicProfile,
+  getPublicReviews,
+} from '../services/profileApi';
 
 export function ProfilePage() {
   const { username = '' } = useParams();
@@ -34,6 +41,12 @@ export function ProfilePage() {
     enabled: profileQuery.isSuccess,
   });
 
+  const listsQuery = useQuery({
+    queryKey: ['profile', username, 'lists'],
+    queryFn: () => getPublicLists(username),
+    enabled: profileQuery.isSuccess,
+  });
+
   if (profileQuery.isPending) return <AlbumGridSkeleton />;
   if (profileQuery.isError) {
     return <ErrorState message={getErrorMessage(profileQuery.error)} onRetry={() => profileQuery.refetch()} />;
@@ -47,11 +60,22 @@ export function ProfilePage() {
       <div className="profile-header">
         <h1 className="page-title">{profile.name}</h1>
         <p className="profile-header__username">@{profile.username}</p>
-        {isOwnProfile && (
+        <p className="profile-header__stats">
+          <strong>{profile.followers}</strong> {profile.followers === 1 ? 'seguidor' : 'seguidores'} ·{' '}
+          <strong>{profile.following}</strong> seguindo
+        </p>
+
+        {isOwnProfile ? (
           <p className="profile-header__note">
             Este é o seu perfil público. Para gerenciar suas avaliações e favoritos, vá até a{' '}
             <Link to="/library">sua biblioteca</Link>.
           </p>
+        ) : (
+          user && (
+            <div className="profile-header__actions">
+              <FollowButton username={profile.username} isFollowing={profile.isFollowedByMe} />
+            </div>
+          )
         )}
       </div>
 
@@ -116,6 +140,27 @@ export function ProfilePage() {
           </div>
         )}
       </section>
+
+      {listsQuery.data && listsQuery.data.length > 0 && (
+        <section className="section">
+          <div className="section__header">
+            <h2 className="section__title">Listas</h2>
+            <span className="count">{listsQuery.data.length}</span>
+          </div>
+          <ul className="lists-grid">
+            {listsQuery.data.map((list) => (
+              <li key={list.id} className="lists-grid__item">
+                <Link to={`/list/${list.id}`}>
+                  <strong>{list.title}</strong>
+                  <span className="muted">
+                    {list.itemCount} {list.itemCount === 1 ? 'álbum' : 'álbuns'}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }
