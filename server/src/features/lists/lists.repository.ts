@@ -103,6 +103,39 @@ export async function addListItem(userId: number, listId: number, albumId: numbe
   }
 }
 
+/** Define a ordem dos álbuns da lista pela ordem do array. Retorna false se a lista não é sua. */
+export async function reorderListItems(userId: number, listId: number, albumIds: number[]): Promise<boolean> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows: owned } = await client.query('SELECT 1 FROM lists WHERE id = $1 AND user_id = $2 FOR UPDATE', [
+      listId,
+      userId,
+    ]);
+    if (owned.length === 0) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+
+    await client.query(
+      `UPDATE list_items li
+          SET position = t.position
+         FROM unnest($2::int[]) WITH ORDINALITY AS t(album_id, position)
+        WHERE li.list_id = $1 AND li.album_id = t.album_id`,
+      [listId, albumIds],
+    );
+    await client.query('UPDATE lists SET updated_at = now() WHERE id = $1', [listId]);
+    await client.query('COMMIT');
+    return true;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 export async function removeListItem(userId: number, listId: number, albumId: number): Promise<boolean> {
   const { rowCount } = await pool.query(
     `DELETE FROM list_items li

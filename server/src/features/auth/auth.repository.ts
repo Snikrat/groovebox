@@ -44,6 +44,14 @@ export async function createSession(userId: number): Promise<string> {
   return token;
 }
 
+export async function updateUsername(userId: number, username: string): Promise<AuthUser> {
+  const { rows } = await pool.query<AuthUser>(
+    'UPDATE users SET username = $2 WHERE id = $1 RETURNING id, name, username, email',
+    [userId, username],
+  );
+  return rows[0];
+}
+
 export async function findUserBySessionToken(token: string): Promise<AuthUser | null> {
   const { rows } = await pool.query<AuthUser>(
     `SELECT u.id, u.name, u.username, u.email

@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import { HttpError } from '../../shared/httpError.js';
 import { isPgError, PG_UNIQUE_VIOLATION } from '../../shared/pgErrors.js';
-import { SESSION_COOKIE, sessionCookieOptions } from './auth.middleware.js';
-import { createSession, createUser, deleteSession, findUserByEmail } from './auth.repository.js';
+import { requireAuth, requireUser, SESSION_COOKIE, sessionCookieOptions } from './auth.middleware.js';
+import { createSession, createUser, deleteSession, findUserByEmail, updateUsername } from './auth.repository.js';
 import { hashPassword, verifyPassword } from './password.js';
 import { generateUsername } from './username.js';
 import type { AuthUser } from './auth.types.js';
+
+// Diferente do slugify automático do cadastro: aqui a pessoa escolhe, então um formato
+// inválido vira erro, não é "consertado" silenciosamente.
+const USERNAME_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 
 const USERNAME_UNIQUE_CONSTRAINT = 'users_username_unique';
 const MAX_USERNAME_ATTEMPTS = 3;
@@ -98,4 +102,18 @@ authRouter.post('/logout', async (req, res) => {
 // Retorna null quando não há ninguém logado.
 authRouter.get('/me', (req, res) => {
   res.json(req.user ?? null);
+});
+
+authRouter.put('/username', requireAuth, async (req, res) => {
+  const username = readString(req.body, 'username').trim().toLowerCase();
+  if (!USERNAME_REGEX.test(username)) {
+    throw new HttpError(400, 'Use de 3 a 40 letras minúsculas, números ou hífen, sem começar ou terminar com hífen.');
+  }
+
+  try {
+    res.json(await updateUsername(requireUser(req).id, username));
+  } catch (error) {
+    if (isPgError(error, PG_UNIQUE_VIOLATION)) throw new HttpError(409, 'Este nome de usuário já está em uso.');
+    throw error;
+  }
 });

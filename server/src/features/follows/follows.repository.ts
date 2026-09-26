@@ -1,12 +1,14 @@
 import { pool } from '../../db/pool.js';
 import type { FollowedUser } from './follows.types.js';
 
-export async function follow(followerId: number, followeeId: number): Promise<void> {
-  await pool.query(
+/** Retorna false quando já seguia (idempotente) — usado para não notificar de novo. */
+export async function follow(followerId: number, followeeId: number): Promise<boolean> {
+  const { rowCount } = await pool.query(
     `INSERT INTO follows (follower_id, followee_id) VALUES ($1, $2)
      ON CONFLICT (follower_id, followee_id) DO NOTHING`,
     [followerId, followeeId],
   );
+  return rowCount === 1;
 }
 
 export async function unfollow(followerId: number, followeeId: number): Promise<void> {

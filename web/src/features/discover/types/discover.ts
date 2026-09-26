@@ -5,3 +5,11 @@ export interface PopularAlbum {
   recentCount: number;
   totalCount: number;
 }
+
+export interface NewRelease {
+  musicbrainzId: string;
+  title: string;
+  firstReleaseDate: string | null;
+  coverUrl: string;
+  artistName: string;
+}

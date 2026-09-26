@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCurrentUser, useSetCurrentUser } from '../../features/auth/hooks/useCurrentUser';
 import { logout } from '../../features/auth/services/authApi';
+import { NotificationBell } from '../../features/notifications/components/NotificationBell';
 import { SearchForm } from './SearchForm';
 
 export function Header() {
@@ -49,8 +50,12 @@ export function Header() {
           <div className="header__account">
             {user ? (
               <>
+                <NotificationBell />
                 <Link to={`/u/${user.username}`} className="header__user" title={user.email}>
                   {user.name}
+                </Link>
+                <Link to="/settings" className="link-button" aria-label="Configurações">
+                  Configurações
                 </Link>
                 <button
                   type="button"

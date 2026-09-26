@@ -61,8 +61,13 @@ export function ProfilePage() {
         <h1 className="page-title">{profile.name}</h1>
         <p className="profile-header__username">@{profile.username}</p>
         <p className="profile-header__stats">
-          <strong>{profile.followers}</strong> {profile.followers === 1 ? 'seguidor' : 'seguidores'} ·{' '}
-          <strong>{profile.following}</strong> seguindo
+          <Link to={`/u/${profile.username}/followers`}>
+            <strong>{profile.followers}</strong> {profile.followers === 1 ? 'seguidor' : 'seguidores'}
+          </Link>{' '}
+          ·{' '}
+          <Link to={`/u/${profile.username}/following`}>
+            <strong>{profile.following}</strong> seguindo
+          </Link>
         </p>
 
         {isOwnProfile ? (

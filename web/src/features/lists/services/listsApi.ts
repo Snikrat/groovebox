@@ -32,3 +32,7 @@ export async function addListItem(id: number, albumId: number): Promise<void> {
 export async function removeListItem(id: number, albumId: number): Promise<void> {
   await api.delete(`/lists/${id}/items/${albumId}`);
 }
+
+export async function reorderListItems(id: number, albumIds: number[]): Promise<void> {
+  await api.put(`/lists/${id}/items/order`, { albumIds });
+}

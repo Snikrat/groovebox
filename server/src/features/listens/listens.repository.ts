@@ -53,6 +53,23 @@ export async function createListen(
   return rows[0];
 }
 
+/** Retorna null quando a audição não existe ou pertence a outro usuário. */
+export async function updateListen(
+  userId: number,
+  id: number,
+  listenedOn: string,
+  rating: number | null,
+): Promise<Listen | null> {
+  const { rows } = await pool.query<Listen>(
+    `UPDATE listens AS l
+        SET listened_on = $3, rating = $4
+      WHERE l.id = $1 AND l.user_id = $2
+     RETURNING ${listenColumns}`,
+    [id, userId, listenedOn, rating],
+  );
+  return rows[0] ?? null;
+}
+
 /** Retorna false quando a audição não existe ou pertence a outro usuário. */
 export async function deleteListen(userId: number, id: number): Promise<boolean> {
   const { rowCount } = await pool.query('DELETE FROM listens WHERE id = $1 AND user_id = $2', [id, userId]);

@@ -29,7 +29,9 @@ export function LibraryPage() {
         <div className="section__header">
           <h2 className="section__title">Seus 4 favoritos</h2>
         </div>
-        <p className="section__hint">Os álbuns que aparecem em destaque no topo do seu perfil público.</p>
+        <p className="section__hint">
+          Os álbuns que aparecem em destaque no topo do seu perfil público. Arraste as capas para reordenar.
+        </p>
         <FeaturedEditor />
       </section>
 

@@ -10,6 +10,7 @@ import {
   findListById,
   listListsByUser,
   removeListItem,
+  reorderListItems,
   updateList,
 } from './lists.repository.js';
 
@@ -79,6 +80,17 @@ listsRouter.post('/:id/items', requireAuth, async (req, res) => {
   }
 
   res.status(201).json({ listId, albumId });
+});
+
+listsRouter.put('/:id/items/order', requireAuth, async (req, res) => {
+  const albumIds = req.body?.albumIds;
+  if (!Array.isArray(albumIds) || !albumIds.every((id) => Number.isInteger(id) && id > 0)) {
+    throw new HttpError(400, 'Informe a lista de ids de álbuns na nova ordem.');
+  }
+
+  const reordered = await reorderListItems(requireUser(req).id, parseId(req.params.id), albumIds);
+  if (!reordered) throw new HttpError(404, 'Lista não encontrada.');
+  res.status(204).end();
 });
 
 listsRouter.delete('/:id/items/:albumId', requireAuth, async (req, res) => {

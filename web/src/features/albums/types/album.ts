@@ -25,6 +25,11 @@ export interface ExternalLink {
   url: string;
 }
 
+export interface AdditionalCover {
+  label: string;
+  url: string;
+}
+
 export interface Album extends AlbumSummary {
   artistMusicbrainzId: string | null;
   primaryType: string | null;
@@ -37,6 +42,8 @@ export interface Album extends AlbumSummary {
   externalLinks: ExternalLink[];
   /** Soma da duração das faixas; null se nenhuma tiver duração conhecida. */
   totalDurationMs: number | null;
+  /** Contracapa e páginas do encarte, se o Cover Art Archive tiver. */
+  additionalCovers: AdditionalCover[];
 }
 
 export interface Track {

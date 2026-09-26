@@ -16,6 +16,11 @@ export async function createListen(albumId: number, listenedOn: string, rating: 
   return data;
 }
 
+export async function updateListen(id: number, listenedOn: string, rating: number | null): Promise<Listen> {
+  const { data } = await api.put<Listen>(`/listens/${id}`, { listenedOn, rating });
+  return data;
+}
+
 export async function deleteListen(id: number): Promise<void> {
   await api.delete(`/listens/${id}`);
 }

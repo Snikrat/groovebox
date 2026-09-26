@@ -45,6 +45,18 @@ export function AlbumPage() {
       <div className="album__hero">
         <div className="album__cover">
           <AlbumCover src={album.coverUrl} alt={`Capa de ${album.title}`} />
+
+          {album.additionalCovers.length > 0 && (
+            <ul className="album__extra-covers">
+              {album.additionalCovers.map((cover) => (
+                <li key={cover.url}>
+                  <a href={cover.url} target="_blank" rel="noopener noreferrer" title={cover.label}>
+                    <img src={cover.url} alt={cover.label} loading="lazy" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="album__info">
@@ -57,13 +69,19 @@ export function AlbumPage() {
           ) : (
             <p className="album__artist">{album.artistName}</p>
           )}
-          {year && <p className="album__year">{year}</p>}
+          {year && (
+            <Link to={`/year/${year}`} className="album__year album__year--link">
+              {year}
+            </Link>
+          )}
 
           {album.genres.length > 0 && (
             <ul className="album__genres">
               {album.genres.map((genre) => (
-                <li key={genre} className="tag">
-                  {genre}
+                <li key={genre}>
+                  <Link to={`/genre/${encodeURIComponent(genre)}`} className="tag tag--link">
+                    {genre}
+                  </Link>
                 </li>
               ))}
             </ul>

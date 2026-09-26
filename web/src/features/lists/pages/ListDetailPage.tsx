@@ -5,10 +5,11 @@ import { AlbumCard } from '../../../features/albums/components/AlbumCard';
 import { EmptyState, ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
 import { formatDate } from '../../../shared/utils/format';
+import { reorderArray } from '../../../shared/utils/array';
 import { getAlbum } from '../../albums/services/albumsApi';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
 import { AlbumPicker } from '../components/AlbumPicker';
-import { addListItem, deleteList, getList, removeListItem, updateList } from '../services/listsApi';
+import { addListItem, deleteList, getList, removeListItem, reorderListItems, updateList } from '../services/listsApi';
 
 const MAX_TITLE_LENGTH = 80;
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -28,6 +29,7 @@ export function ListDetailPage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   function invalidate() {
     queryClient.invalidateQueries({ queryKey: ['lists', listId] });
@@ -55,6 +57,11 @@ export function ListDetailPage() {
     onSuccess: invalidate,
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: (albumIds: number[]) => reorderListItems(listId, albumIds),
+    onSuccess: invalidate,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: () => deleteList(listId),
     onSuccess: () => navigate('/library'),
@@ -69,6 +76,13 @@ export function ListDetailPage() {
   const list = listQuery.data;
   const isOwner = user?.username === list.owner.username;
   const existingIds = new Set(list.items.map((album) => album.musicbrainzId));
+
+  function handleDrop(dropIndex: number) {
+    if (dragIndex !== null && dragIndex !== dropIndex) {
+      reorderMutation.mutate(reorderArray(list.items, dragIndex, dropIndex).map((album) => album.id));
+    }
+    setDragIndex(null);
+  }
 
   return (
     <>
@@ -126,28 +140,39 @@ export function ListDetailPage() {
         {list.items.length === 0 ? (
           <EmptyState>Esta lista ainda não tem álbuns.</EmptyState>
         ) : (
-          <div className="album-grid">
-            {list.items.map((album) => (
-              <div key={album.id} className="list-item">
-                <AlbumCard album={album} />
-                {isOwner && (
-                  <button
-                    type="button"
-                    className="list-item__remove"
-                    onClick={() => removeMutation.mutate(album.id)}
-                    disabled={removeMutation.isPending}
-                  >
-                    Remover
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
+          <>
+            {isOwner && list.items.length > 1 && <p className="section__hint">Arraste as capas para reordenar.</p>}
+            <div className="album-grid">
+              {list.items.map((album, index) => (
+                <div
+                  key={album.id}
+                  className={`list-item${dragIndex === index ? ' is-dragging' : ''}`}
+                  draggable={isOwner && list.items.length > 1}
+                  onDragStart={() => setDragIndex(index)}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleDrop(index)}
+                  onDragEnd={() => setDragIndex(null)}
+                >
+                  <AlbumCard album={album} />
+                  {isOwner && (
+                    <button
+                      type="button"
+                      className="list-item__remove"
+                      onClick={() => removeMutation.mutate(album.id)}
+                      disabled={removeMutation.isPending}
+                    >
+                      Remover
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
-        {removeMutation.isError && (
+        {(removeMutation.isError || reorderMutation.isError) && (
           <span className="form-error" role="alert">
-            {getErrorMessage(removeMutation.error)}
+            {getErrorMessage(removeMutation.error ?? reorderMutation.error)}
           </span>
         )}
       </section>

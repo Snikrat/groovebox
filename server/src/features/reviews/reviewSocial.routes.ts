@@ -3,7 +3,9 @@ import { requireAuth, requireUser } from '../auth/auth.middleware.js';
 import { HttpError } from '../../shared/httpError.js';
 import { isPgError, PG_FOREIGN_KEY_VIOLATION } from '../../shared/pgErrors.js';
 import { parseId } from '../../shared/validation.js';
+import { createNotification } from '../notifications/notifications.repository.js';
 import { addComment, deleteComment, likeReview, listComments, unlikeReview } from './reviewSocial.repository.js';
+import { findReviewOwnerId } from './reviews.repository.js';
 
 const MAX_COMMENT_LENGTH = 500;
 
@@ -11,12 +13,19 @@ export const reviewSocialRouter = Router();
 
 reviewSocialRouter.post('/:id/likes', requireAuth, async (req, res) => {
   const reviewId = parseId(req.params.id);
+  const me = requireUser(req);
+  let isNew: boolean;
 
   try {
-    await likeReview(requireUser(req).id, reviewId);
+    isNew = await likeReview(me.id, reviewId);
   } catch (error) {
     if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) throw new HttpError(404, 'Avaliação não encontrada.');
     throw error;
+  }
+
+  if (isNew) {
+    const ownerId = await findReviewOwnerId(reviewId);
+    if (ownerId) await createNotification(ownerId, me.id, 'like', reviewId);
   }
 
   res.status(201).json({ reviewId });
@@ -41,12 +50,19 @@ reviewSocialRouter.post('/:id/comments', requireAuth, async (req, res) => {
     throw new HttpError(400, `O comentário pode ter no máximo ${MAX_COMMENT_LENGTH} caracteres.`);
   }
 
+  const me = requireUser(req);
+  let comment;
   try {
-    res.status(201).json(await addComment(requireUser(req).id, reviewId, text));
+    comment = await addComment(me.id, reviewId, text);
   } catch (error) {
     if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) throw new HttpError(404, 'Avaliação não encontrada.');
     throw error;
   }
+
+  const ownerId = await findReviewOwnerId(reviewId);
+  if (ownerId) await createNotification(ownerId, me.id, 'comment', reviewId);
+
+  res.status(201).json(comment);
 });
 
 reviewSocialRouter.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {

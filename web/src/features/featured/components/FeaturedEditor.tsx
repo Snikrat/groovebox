@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlbumCover } from '../../../shared/components/AlbumCover';
 import { ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
+import { reorderArray } from '../../../shared/utils/array';
 import type { AlbumSummary } from '../../albums/types/album';
 import { listFavorites } from '../../favorites/services/favoritesApi';
 import { listReviews } from '../../reviews/services/reviewsApi';
@@ -40,6 +42,7 @@ function FeaturedSlots({
   const queryClient = useQueryClient();
   const featuredIds = featured.map((item) => item.album.id);
   const availableCandidates = candidates.filter((album) => !featuredIds.includes(album.id));
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const mutation = useMutation({
     mutationFn: (albumIds: number[]) => replaceFeatured(albumIds),
@@ -57,11 +60,26 @@ function FeaturedSlots({
     mutation.mutate(featuredIds.filter((id) => id !== albumId));
   }
 
+  function handleDrop(dropIndex: number) {
+    if (dragIndex !== null && dragIndex !== dropIndex) {
+      mutation.mutate(reorderArray(featuredIds, dragIndex, dropIndex));
+    }
+    setDragIndex(null);
+  }
+
   return (
     <div>
       <div className="featured-grid">
-        {featured.map((item) => (
-          <div key={item.album.id} className="featured-slot featured-slot--filled">
+        {featured.map((item, index) => (
+          <div
+            key={item.album.id}
+            className={`featured-slot featured-slot--filled${dragIndex === index ? ' is-dragging' : ''}`}
+            draggable={featured.length > 1}
+            onDragStart={() => setDragIndex(index)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => handleDrop(index)}
+            onDragEnd={() => setDragIndex(null)}
+          >
             <Link to={`/album/${item.album.musicbrainzId}`}>
               <AlbumCover src={item.album.coverUrl} alt={`Capa de ${item.album.title}`} />
             </Link>

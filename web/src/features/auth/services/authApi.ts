@@ -20,3 +20,8 @@ export async function register(input: RegisterInput): Promise<User> {
 export async function logout(): Promise<void> {
   await api.post('/auth/logout');
 }
+
+export async function updateUsername(username: string): Promise<User> {
+  const { data } = await api.put<User>('/auth/username', { username });
+  return data;
+}

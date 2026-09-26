@@ -6,6 +6,7 @@ import { getErrorMessage } from '../../../shared/services/api';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { LoginPrompt } from '../../auth/components/LoginPrompt';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
+import { NewReleases } from '../../discover/components/NewReleases';
 import { PopularAlbums } from '../../discover/components/PopularAlbums';
 import { PopularReviews } from '../../discover/components/PopularReviews';
 import { listReviews } from '../../reviews/services/reviewsApi';
@@ -24,7 +25,10 @@ export function HomePage() {
       </section>
 
       {isPending ? null : user ? (
-        <RecentReviews />
+        <>
+          <RecentReviews />
+          <NewReleases />
+        </>
       ) : (
         <LoginPrompt message="Crie uma conta para avaliar álbuns e montar sua biblioteca." />
       )}

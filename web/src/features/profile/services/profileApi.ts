@@ -3,6 +3,7 @@ import type { ReviewWithAlbum } from '../../reviews/types/review';
 import type { Favorite } from '../../favorites/types/favorite';
 import type { FeaturedAlbum } from '../../featured/types/featured';
 import type { ListSummary } from '../../lists/types/list';
+import type { FollowedUser } from '../../follows/types/follow';
 import type { PublicProfile } from '../types/profile';
 
 export async function getPublicProfile(username: string): Promise<PublicProfile> {
@@ -27,5 +28,15 @@ export async function getPublicFeatured(username: string): Promise<FeaturedAlbum
 
 export async function getPublicLists(username: string): Promise<ListSummary[]> {
   const { data } = await api.get<ListSummary[]>(`/users/${username}/lists`);
+  return data;
+}
+
+export async function getFollowers(username: string): Promise<FollowedUser[]> {
+  const { data } = await api.get<FollowedUser[]>(`/users/${username}/followers`);
+  return data;
+}
+
+export async function getFollowingOf(username: string): Promise<FollowedUser[]> {
+  const { data } = await api.get<FollowedUser[]>(`/users/${username}/following`);
   return data;
 }

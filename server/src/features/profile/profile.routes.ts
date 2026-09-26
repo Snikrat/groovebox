@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { HttpError } from '../../shared/httpError.js';
 import { listFavorites } from '../favorites/favorites.repository.js';
 import { listFeatured } from '../featured/featured.repository.js';
-import { countFollowStats, isFollowing } from '../follows/follows.repository.js';
+import { countFollowStats, isFollowing, listFollowers, listFollowing } from '../follows/follows.repository.js';
 import { listListsByUser } from '../lists/lists.repository.js';
 import { listReviews } from '../reviews/reviews.repository.js';
 import { findPublicProfile } from './profile.repository.js';
@@ -40,4 +40,14 @@ profileRouter.get('/:username/featured', async (req, res) => {
 profileRouter.get('/:username/lists', async (req, res) => {
   const { id } = await requireProfile(req.params.username);
   res.json(await listListsByUser(id));
+});
+
+profileRouter.get('/:username/followers', async (req, res) => {
+  const { id } = await requireProfile(req.params.username);
+  res.json(await listFollowers(id));
+});
+
+profileRouter.get('/:username/following', async (req, res) => {
+  const { id } = await requireProfile(req.params.username);
+  res.json(await listFollowing(id));
 });

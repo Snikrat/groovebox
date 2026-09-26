@@ -1,12 +1,14 @@
 import { pool } from '../../db/pool.js';
 import type { ReviewComment } from './reviews.types.js';
 
-export async function likeReview(userId: number, reviewId: number): Promise<void> {
-  await pool.query(
+/** Retorna false quando já tinha curtido (idempotente) — usado para não notificar de novo. */
+export async function likeReview(userId: number, reviewId: number): Promise<boolean> {
+  const { rowCount } = await pool.query(
     `INSERT INTO review_likes (user_id, review_id) VALUES ($1, $2)
      ON CONFLICT (user_id, review_id) DO NOTHING`,
     [userId, reviewId],
   );
+  return rowCount === 1;
 }
 
 export async function unlikeReview(userId: number, reviewId: number): Promise<void> {

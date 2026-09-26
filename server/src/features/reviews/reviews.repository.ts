@@ -43,6 +43,13 @@ export async function listPublicReviewsForAlbum(
   return rows;
 }
 
+export async function findReviewOwnerId(reviewId: number): Promise<number | null> {
+  const { rows } = await pool.query<{ userId: number }>('SELECT user_id AS "userId" FROM reviews WHERE id = $1', [
+    reviewId,
+  ]);
+  return rows[0]?.userId ?? null;
+}
+
 export async function findReviewForAlbum(userId: number, albumId: number): Promise<Review | null> {
   const { rows } = await pool.query<Review>(
     `SELECT ${reviewColumns} FROM reviews r WHERE r.user_id = $1 AND r.album_id = $2`,

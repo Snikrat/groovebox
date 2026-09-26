@@ -3,7 +3,7 @@ import { requireAuth, requireUser } from '../auth/auth.middleware.js';
 import { HttpError } from '../../shared/httpError.js';
 import { isPgError, PG_FOREIGN_KEY_VIOLATION } from '../../shared/pgErrors.js';
 import { parseId } from '../../shared/validation.js';
-import { createListen, deleteListen, listListens, listListensForAlbum } from './listens.repository.js';
+import { createListen, deleteListen, listListens, listListensForAlbum, updateListen } from './listens.repository.js';
 
 const PAGE_SIZE = 50;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
@@ -67,6 +67,16 @@ listensRouter.post('/', async (req, res) => {
     if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) throw new HttpError(404, 'Álbum não encontrado.');
     throw error;
   }
+});
+
+listensRouter.put('/:id', async (req, res) => {
+  const listenedOn = parseListenedOn(req.body);
+  const rating = parseListenRating(req.body);
+
+  const listen = await updateListen(requireUser(req).id, parseId(req.params.id), listenedOn, rating);
+  if (!listen) throw new HttpError(404, 'Audição não encontrada.');
+
+  res.json(listen);
 });
 
 listensRouter.delete('/:id', async (req, res) => {

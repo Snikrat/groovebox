@@ -5,7 +5,7 @@ import { ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
 import { formatPlainDate, todayIsoDate } from '../../../shared/utils/format';
 import { StarRatingInput } from '../../reviews/components/StarRatingInput';
-import { createListen, deleteListen, listListensForAlbum } from '../services/listensApi';
+import { createListen, deleteListen, listListensForAlbum, updateListen } from '../services/listensApi';
 import type { Listen } from '../types/listen';
 
 export function ListenLog({ albumId }: { albumId: number }) {
@@ -27,7 +27,6 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: Liste
   const [isAdding, setIsAdding] = useState(false);
   const [date, setDate] = useState(todayIsoDate());
   const [rating, setRating] = useState(0);
-  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   function refresh() {
     queryClient.invalidateQueries({ queryKey: ['listens', 'album', albumId] });
@@ -40,14 +39,6 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: Liste
       setIsAdding(false);
       setDate(todayIsoDate());
       setRating(0);
-      refresh();
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => deleteListen(id),
-    onSuccess: () => {
-      setPendingDeleteId(null);
       refresh();
     },
   });
@@ -71,32 +62,7 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: Liste
       {listens.length > 0 && (
         <ul className="listen-log__list">
           {listens.map((listen) => (
-            <li key={listen.id} className="listen-log__item">
-              <span className="listen-log__item-date">
-                {formatPlainDate(listen.listenedOn)}
-                {listen.rating != null && <Stars rating={listen.rating} size="sm" />}
-              </span>
-              {pendingDeleteId === listen.id ? (
-                <span className="listen-log__confirm">
-                  Remover?
-                  <button
-                    type="button"
-                    className="link-button link-button--danger"
-                    onClick={() => deleteMutation.mutate(listen.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Sim
-                  </button>
-                  <button type="button" className="link-button" onClick={() => setPendingDeleteId(null)}>
-                    Cancelar
-                  </button>
-                </span>
-              ) : (
-                <button type="button" className="link-button" onClick={() => setPendingDeleteId(listen.id)}>
-                  Remover
-                </button>
-              )}
-            </li>
+            <ListenLogItem key={listen.id} listen={listen} onChanged={refresh} />
           ))}
         </ul>
       )}
@@ -123,18 +89,120 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: Liste
               Cancelar
             </button>
           </div>
+          {createMutation.isError && (
+            <span className="form-error" role="alert">
+              {getErrorMessage(createMutation.error)}
+            </span>
+          )}
         </form>
       ) : (
         <button type="button" className="button" onClick={() => setIsAdding(true)}>
           Registrar audição
         </button>
       )}
+    </div>
+  );
+}
 
-      {(createMutation.isError || deleteMutation.isError) && (
-        <span className="form-error" role="alert">
-          {getErrorMessage(createMutation.error ?? deleteMutation.error)}
+function ListenLogItem({ listen, onChanged }: { listen: Listen; onChanged: () => void }) {
+  const [mode, setMode] = useState<'view' | 'edit' | 'confirm-delete'>('view');
+  const [date, setDate] = useState(listen.listenedOn);
+  const [rating, setRating] = useState(listen.rating ?? 0);
+
+  const updateMutation = useMutation({
+    mutationFn: () => updateListen(listen.id, date, rating > 0 ? rating : null),
+    onSuccess: () => {
+      setMode('view');
+      onChanged();
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteListen(listen.id),
+    onSuccess: onChanged,
+  });
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (date) updateMutation.mutate();
+  }
+
+  function cancelEdit() {
+    setDate(listen.listenedOn);
+    setRating(listen.rating ?? 0);
+    setMode('view');
+  }
+
+  if (mode === 'edit') {
+    return (
+      <li className="listen-log__item listen-log__item--editing">
+        <form className="listen-log__form" onSubmit={handleSubmit}>
+          <div className="listen-log__form-row">
+            <input
+              type="date"
+              className="input"
+              value={date}
+              max={todayIsoDate()}
+              onChange={(event) => setDate(event.target.value)}
+              aria-label="Data da audição"
+              required
+            />
+            <StarRatingInput value={rating} onChange={setRating} label="Nota desta audição (opcional)" />
+          </div>
+          <div className="listen-log__form-row">
+            <button type="submit" className="button button--primary" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? 'Salvando…' : 'Salvar'}
+            </button>
+            <button type="button" className="link-button" onClick={cancelEdit}>
+              Cancelar
+            </button>
+          </div>
+          {updateMutation.isError && (
+            <span className="form-error" role="alert">
+              {getErrorMessage(updateMutation.error)}
+            </span>
+          )}
+        </form>
+      </li>
+    );
+  }
+
+  return (
+    <li className="listen-log__item">
+      <span className="listen-log__item-date">
+        {formatPlainDate(listen.listenedOn)}
+        {listen.rating != null && <Stars rating={listen.rating} size="sm" />}
+      </span>
+      {mode === 'confirm-delete' ? (
+        <span className="listen-log__confirm">
+          Remover?
+          <button
+            type="button"
+            className="link-button link-button--danger"
+            onClick={() => deleteMutation.mutate()}
+            disabled={deleteMutation.isPending}
+          >
+            Sim
+          </button>
+          <button type="button" className="link-button" onClick={() => setMode('view')}>
+            Cancelar
+          </button>
+        </span>
+      ) : (
+        <span className="listen-log__actions">
+          <button type="button" className="link-button" onClick={() => setMode('edit')}>
+            Editar
+          </button>
+          <button type="button" className="link-button" onClick={() => setMode('confirm-delete')}>
+            Remover
+          </button>
         </span>
       )}
-    </div>
+      {deleteMutation.isError && (
+        <span className="form-error" role="alert">
+          {getErrorMessage(deleteMutation.error)}
+        </span>
+      )}
+    </li>
   );
 }

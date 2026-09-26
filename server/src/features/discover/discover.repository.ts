@@ -26,6 +26,38 @@ export async function listPopularAlbums(limit: number): Promise<PopularAlbum[]> 
   return rows;
 }
 
+const RECENT_ARTISTS_LIMIT = 10;
+
+/** Os artistas mais recentemente avaliados pelo usuário (um mbid por artista, sem repetir). */
+export async function listRecentlyReviewedArtistMbids(userId: number): Promise<string[]> {
+  const { rows } = await pool.query<{ artistMbid: string }>(
+    `SELECT a.artist_musicbrainz_id AS "artistMbid"
+       FROM reviews r
+       JOIN albums a ON a.id = r.album_id
+      WHERE r.user_id = $1 AND a.artist_musicbrainz_id IS NOT NULL
+      GROUP BY a.artist_musicbrainz_id
+      ORDER BY max(r.updated_at) DESC
+      LIMIT $2`,
+    [userId, RECENT_ARTISTS_LIMIT],
+  );
+  return rows.map((row) => row.artistMbid);
+}
+
+/** MBIDs de álbuns que o usuário já avaliou ou colocou em "quero ouvir" — para não sugerir de novo. */
+export async function listKnownAlbumMbids(userId: number): Promise<Set<string>> {
+  const { rows } = await pool.query<{ musicbrainzId: string }>(
+    `SELECT DISTINCT a.musicbrainz_id AS "musicbrainzId"
+       FROM albums a
+      WHERE a.id IN (
+        SELECT album_id FROM reviews WHERE user_id = $1
+        UNION
+        SELECT album_id FROM wishlist_items WHERE user_id = $1
+      )`,
+    [userId],
+  );
+  return new Set(rows.map((row) => row.musicbrainzId));
+}
+
 /** Avaliações públicas mais curtidas, de qualquer usuário (não só de quem você segue). */
 export async function listPopularReviews(limit: number, viewerId: number | null): Promise<PublicReview[]> {
   const { rows } = await pool.query<PublicReview>(

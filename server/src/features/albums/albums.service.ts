@@ -1,4 +1,4 @@
-import { coverUrlFor, findCoverUrl } from '../musicbrainz/coverArt.js';
+import { coverUrlFor, findAdditionalCovers, findCoverUrl } from '../musicbrainz/coverArt.js';
 import { getRelease, getReleaseGroup, searchReleaseGroups } from '../musicbrainz/musicbrainz.client.js';
 import {
   artistIdFrom,
@@ -72,6 +72,7 @@ async function importAlbum(mbid: string): Promise<Album> {
   const releaseDetail = releaseSummary ? await getRelease(releaseSummary.id) : null;
   const tracks = releaseDetail ? tracksFrom(releaseDetail) : [];
   const coverUrl = await findCoverUrl(mbid);
+  const additionalCovers = await findAdditionalCovers(mbid);
 
   await insertAlbumWithTracks(
     {
@@ -86,6 +87,7 @@ async function importAlbum(mbid: string): Promise<Album> {
       label: releaseDetail ? labelNameFrom(releaseDetail) : null,
       country: releaseDetail?.country ?? null,
       externalLinks: externalLinksFrom(group),
+      additionalCovers,
     },
     tracks,
   );
