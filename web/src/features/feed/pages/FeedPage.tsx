@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { EmptyState, ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
 import { ReviewCard } from '../../reviews/components/ReviewCard';
@@ -48,8 +49,9 @@ function FeedList({ items, hasNextPage, isFetchingNextPage, onLoadMore, onChange
   if (items.length === 0) {
     return (
       <EmptyState>
-        Seu feed está vazio. Para ver avaliações aqui, siga alguém — o botão "Seguir" fica no perfil de cada
-        pessoa. Você chega lá clicando no nome de quem avaliou um álbum, em "Outras avaliações" na página do álbum.
+        Seu feed está vazio. Para ver avaliações aqui, siga alguém — procure em{' '}
+        <Link to="/people">Pessoas</Link> ou siga a partir do perfil de quem avaliou um álbum, em "Outras
+        avaliações" na página do álbum.
       </EmptyState>
     );
   }

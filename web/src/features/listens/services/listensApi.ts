@@ -11,8 +11,8 @@ export async function listListensForAlbum(albumId: number): Promise<Listen[]> {
   return data;
 }
 
-export async function createListen(albumId: number, listenedOn: string): Promise<Listen> {
-  const { data } = await api.post<Listen>('/listens', { albumId, listenedOn });
+export async function createListen(albumId: number, listenedOn: string, rating: number | null): Promise<Listen> {
+  const { data } = await api.post<Listen>('/listens', { albumId, listenedOn, rating });
   return data;
 }
 

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { AlbumGridSkeleton, EmptyState, ErrorState } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
 import { formatDate } from '../../../shared/utils/format';
@@ -6,6 +7,7 @@ import { AlbumCard } from '../../albums/components/AlbumCard';
 import { listFavorites } from '../../favorites/services/favoritesApi';
 import { FeaturedEditor } from '../../featured/components/FeaturedEditor';
 import { ListsSection } from '../../lists/components/ListsSection';
+import { LogButton } from '../../log/components/LogButton';
 import { listReviews } from '../../reviews/services/reviewsApi';
 import { listWishlist } from '../../wishlist/services/wishlistApi';
 
@@ -16,7 +18,12 @@ export function LibraryPage() {
 
   return (
     <>
-      <h1 className="page-title">Minha biblioteca</h1>
+      <div className="page-header">
+        <h1 className="page-title">Minha biblioteca</h1>
+        <Link to="/stats" className="button">
+          Ver estatísticas
+        </Link>
+      </div>
 
       <section className="section">
         <div className="section__header">
@@ -88,7 +95,10 @@ export function LibraryPage() {
         ) : (
           <div className="album-grid">
             {wishlistQuery.data.map((item) => (
-              <AlbumCard key={item.albumId} album={item.album} />
+              <div key={item.albumId} className="album-tile">
+                <AlbumCard album={item.album} />
+                <LogButton musicbrainzId={item.album.musicbrainzId} />
+              </div>
             ))}
           </div>
         )}

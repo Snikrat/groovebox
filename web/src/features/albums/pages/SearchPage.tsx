@@ -2,12 +2,15 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { AlbumGridSkeleton, EmptyState, ErrorState } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
+import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
+import { LogButton } from '../../log/components/LogButton';
 import { AlbumCard } from '../components/AlbumCard';
 import { searchAlbums } from '../services/albumsApi';
 
 export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = (searchParams.get('q') ?? '').trim();
+  const { user } = useCurrentUser();
 
   const searchQuery = useInfiniteQuery({
     queryKey: ['albums', 'search', query],
@@ -46,7 +49,10 @@ export function SearchPage() {
         <>
           <div className="album-grid">
             {albums.map((album) => (
-              <AlbumCard key={album.musicbrainzId} album={album} />
+              <div key={album.musicbrainzId} className="album-tile">
+                <AlbumCard album={album} />
+                {user && <LogButton musicbrainzId={album.musicbrainzId} />}
+              </div>
             ))}
           </div>
 

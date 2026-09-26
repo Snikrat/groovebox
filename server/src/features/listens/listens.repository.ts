@@ -5,11 +5,12 @@ import type { Listen, ListenWithAlbum } from './listens.types.js';
 const listenColumns = `l.id,
   l.album_id            AS "albumId",
   to_char(l.listened_on, 'YYYY-MM-DD') AS "listenedOn",
+  l.rating,
   l.created_at           AS "createdAt"`;
 
 export async function listListens(userId: number, limit: number, offset: number): Promise<ListenWithAlbum[]> {
   const { rows } = await pool.query<ListenWithAlbum>(
-    `SELECT ${listenColumns}, ${albumSummaryJson} AS album, r.rating,
+    `SELECT ${listenColumns}, ${albumSummaryJson} AS album, r.rating AS "reviewRating",
             -- "Reouvido": já existe uma audição mais antiga do mesmo álbum.
             -- O window function considera todas as audições do usuário, não só a página atual.
             l.id <> FIRST_VALUE(l.id) OVER (
@@ -37,12 +38,17 @@ export async function listListensForAlbum(userId: number, albumId: number): Prom
   return rows;
 }
 
-export async function createListen(userId: number, albumId: number, listenedOn: string): Promise<Listen> {
+export async function createListen(
+  userId: number,
+  albumId: number,
+  listenedOn: string,
+  rating: number | null,
+): Promise<Listen> {
   const { rows } = await pool.query<Listen>(
-    `INSERT INTO listens AS l (user_id, album_id, listened_on)
-     VALUES ($1, $2, $3)
+    `INSERT INTO listens AS l (user_id, album_id, listened_on, rating)
+     VALUES ($1, $2, $3, $4)
      RETURNING ${listenColumns}`,
-    [userId, albumId, listenedOn],
+    [userId, albumId, listenedOn, rating],
   );
   return rows[0];
 }

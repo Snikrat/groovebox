@@ -4,6 +4,7 @@ import { AlbumGridSkeleton, EmptyState, ErrorState } from '../../../shared/compo
 import { getErrorMessage } from '../../../shared/services/api';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
+import { LogButton } from '../../log/components/LogButton';
 import { listReviews } from '../../reviews/services/reviewsApi';
 import { getArtist } from '../services/artistsApi';
 
@@ -42,11 +43,10 @@ export function ArtistPage() {
         ) : (
           <div className="album-grid">
             {artist.albums.map((album) => (
-              <AlbumCard
-                key={album.musicbrainzId}
-                album={{ ...album, artistName: artist.name }}
-                rating={ratingsByAlbum.get(album.musicbrainzId)}
-              />
+              <div key={album.musicbrainzId} className="album-tile">
+                <AlbumCard album={{ ...album, artistName: artist.name }} rating={ratingsByAlbum.get(album.musicbrainzId)} />
+                {user && <LogButton musicbrainzId={album.musicbrainzId} />}
+              </div>
             ))}
           </div>
         )}

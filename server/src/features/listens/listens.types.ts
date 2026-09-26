@@ -5,13 +5,15 @@ export interface Listen {
   albumId: number;
   /** Data no formato AAAA-MM-DD, sem hora. */
   listenedOn: string;
+  /** Nota dada a esta audição específica, se houver. Independente da nota do álbum. */
+  rating: number | null;
   createdAt: string;
 }
 
 export interface ListenWithAlbum extends Listen {
   album: AlbumSummary;
-  /** Nota que o usuário deu ao álbum, se já o avaliou. */
-  rating: number | null;
+  /** Nota atual do álbum (de reviews), para referência — pode diferir da nota desta audição. */
+  reviewRating: number | null;
   /** true quando esta não foi a primeira audição registrada do álbum. */
   isRelisten: boolean;
 }

@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
+import { Stars } from '../../../shared/components/Stars';
 import { ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
 import { formatPlainDate, todayIsoDate } from '../../../shared/utils/format';
+import { StarRatingInput } from '../../reviews/components/StarRatingInput';
 import { createListen, deleteListen, listListensForAlbum } from '../services/listensApi';
+import type { Listen } from '../types/listen';
 
 export function ListenLog({ albumId }: { albumId: number }) {
   const listensQuery = useQuery({
@@ -19,10 +22,11 @@ export function ListenLog({ albumId }: { albumId: number }) {
   return <ListenLogEditor albumId={albumId} listens={listensQuery.data} />;
 }
 
-function ListenLogEditor({ albumId, listens }: { albumId: number; listens: { id: number; listenedOn: string }[] }) {
+function ListenLogEditor({ albumId, listens }: { albumId: number; listens: Listen[] }) {
   const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
   const [date, setDate] = useState(todayIsoDate());
+  const [rating, setRating] = useState(0);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   function refresh() {
@@ -31,10 +35,11 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: { id:
   }
 
   const createMutation = useMutation({
-    mutationFn: (listenedOn: string) => createListen(albumId, listenedOn),
+    mutationFn: () => createListen(albumId, date, rating > 0 ? rating : null),
     onSuccess: () => {
       setIsAdding(false);
       setDate(todayIsoDate());
+      setRating(0);
       refresh();
     },
   });
@@ -49,7 +54,7 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: { id:
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (date) createMutation.mutate(date);
+    if (date) createMutation.mutate();
   }
 
   return (
@@ -67,7 +72,10 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: { id:
         <ul className="listen-log__list">
           {listens.map((listen) => (
             <li key={listen.id} className="listen-log__item">
-              <span>{formatPlainDate(listen.listenedOn)}</span>
+              <span className="listen-log__item-date">
+                {formatPlainDate(listen.listenedOn)}
+                {listen.rating != null && <Stars rating={listen.rating} size="sm" />}
+              </span>
               {pendingDeleteId === listen.id ? (
                 <span className="listen-log__confirm">
                   Remover?
@@ -95,21 +103,26 @@ function ListenLogEditor({ albumId, listens }: { albumId: number; listens: { id:
 
       {isAdding ? (
         <form className="listen-log__form" onSubmit={handleSubmit}>
-          <input
-            type="date"
-            className="input"
-            value={date}
-            max={todayIsoDate()}
-            onChange={(event) => setDate(event.target.value)}
-            aria-label="Data da audição"
-            required
-          />
-          <button type="submit" className="button button--primary" disabled={createMutation.isPending}>
-            {createMutation.isPending ? 'Registrando…' : 'Registrar'}
-          </button>
-          <button type="button" className="link-button" onClick={() => setIsAdding(false)}>
-            Cancelar
-          </button>
+          <div className="listen-log__form-row">
+            <input
+              type="date"
+              className="input"
+              value={date}
+              max={todayIsoDate()}
+              onChange={(event) => setDate(event.target.value)}
+              aria-label="Data da audição"
+              required
+            />
+            <StarRatingInput value={rating} onChange={setRating} label="Nota desta audição (opcional)" />
+          </div>
+          <div className="listen-log__form-row">
+            <button type="submit" className="button button--primary" disabled={createMutation.isPending}>
+              {createMutation.isPending ? 'Registrando…' : 'Registrar'}
+            </button>
+            <button type="button" className="link-button" onClick={() => setIsAdding(false)}>
+              Cancelar
+            </button>
+          </div>
         </form>
       ) : (
         <button type="button" className="button" onClick={() => setIsAdding(true)}>

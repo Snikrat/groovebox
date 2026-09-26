@@ -1,6 +1,6 @@
 # groovebox
 
-MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, marcar faixas favoritas, favoritar o álbum, guardar numa lista "quero ouvir", registrar audições num diário, ver a discografia de um artista, destacar seus 4 álbuns favoritos, gerar um card para compartilhar, ter um perfil público, seguir outras pessoas e ver um feed, curtir e comentar avaliações, e montar listas públicas com curadoria.
+MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, marcar faixas favoritas, favoritar o álbum, guardar numa lista "quero ouvir", registrar audições num diário (cada uma com sua própria nota), ver a discografia de um artista, destacar seus 4 álbuns favoritos, gerar um card para compartilhar, ter um perfil público, seguir outras pessoas e ver um feed, curtir e comentar avaliações, montar listas públicas com curadoria, ver estatísticas pessoais, descobrir álbuns e avaliações populares na Home, buscar pessoas e registrar tudo de uma vez num modal rápido.
 
 - **web/**: React + TypeScript + Vite, React Router, TanStack Query, Axios
 - **server/**: Node.js + TypeScript + Express, PostgreSQL (`pg`)
@@ -43,7 +43,7 @@ React ──/api──▶ Express ──▶ PostgreSQL
 - **Álbum** (`GET /api/albums/:mbid`): se ainda não existe no banco, o backend busca o release-group, escolhe uma edição representativa (a release oficial mais antiga), busca a tracklist e verifica se há capa no Cover Art Archive. Álbum e faixas são salvos em uma transação. O banco local cresce conforme o uso.
 - **Capas**: só a URL do Cover Art Archive é guardada (`NULL` se não houver capa). O frontend mostra um placeholder quando não há imagem.
 - **Autenticação**: email e senha. A senha é guardada com `scrypt`. O login cria uma sessão na tabela `sessions` e envia um cookie `httpOnly` com um token aleatório. O banco guarda só o hash SHA-256 do token. A sessão expira em 30 dias, e o logout a apaga no servidor. Busca e página de álbum são públicas; reviews, favoritos, diário e a biblioteca exigem login.
-- **Diário**: cada audição registrada (`listens`) tem só uma data, e o mesmo álbum pode ter várias. É separado da avaliação: a nota e o texto continuam sendo um por álbum. A página `/diary` agrupa as audições por mês e marca como "Reouvido" quando não é a primeira audição daquele álbum (calculado no banco com uma window function, considerando todas as audições do usuário, não só a página carregada).
+- **Diário**: cada audição registrada (`listens`) tem uma data e, opcionalmente, sua própria nota — independente da nota "oficial" do álbum em `reviews` (que segue sendo uma por álbum, usada na média, na biblioteca e no card de compartilhar). A página `/diary` agrupa as audições por mês, mostra a nota daquela audição específica quando houver, e marca como "Reouvido" quando não é a primeira audição daquele álbum (calculado no banco com uma window function, considerando todas as audições do usuário, não só a página carregada).
 - **Perfil público** (`/u/:username`): mostra os 4 favoritos em destaque, as avaliações e os favoritos de qualquer usuário, sem exigir login. O nome de usuário é gerado a partir do nome no cadastro (acentos viram "-"; um número é acrescentado se já existir) e não é editável nesta versão. Nunca expõe o email.
 - **Artista** (`/artist/:mbid`): lista a discografia principal (álbuns de estúdio; ao vivo, coletâneas e trilhas sonoras ficam de fora) consultando o MusicBrainz direto, com cache de 10 min — não é importada para o banco. Sobrepõe a nota do usuário logado em cada álbum já avaliado.
 - **Faixas favoritas**: marcação simples (sem nota), independente por faixa. Aparece como um coração ao lado de cada faixa na página do álbum.
@@ -53,6 +53,10 @@ React ──/api──▶ Express ──▶ PostgreSQL
 - **Seguir e feed**: seguir é aberto, sem aprovação. O feed (`/feed`) mostra as avaliações de quem você segue, mais recentes primeiro — não inclui audições do diário. Não há busca de pessoas nesta versão: você chega ao perfil de alguém pelo nome, num comentário, numa curtida ou em "Outras avaliações" na página do álbum, e segue a partir de lá.
 - **Curtidas e comentários**: em toda avaliação pública (no feed ou em "Outras avaliações" do álbum). Comentários são uma lista simples, sem respostas aninhadas; cada um só pode apagar os próprios.
 - **Listas públicas**: título, descrição opcional e álbuns adicionados por busca (a mesma busca da Home). A ordem é a de adição — sem reordenar por arrastar nesta versão. Só quem criou a lista pode editá-la ou apagá-la; qualquer pessoa pode vê-la pelo link.
+- **Registro rápido**: um botão "Registrar" (na busca, na discografia do artista e na lista "quero ouvir") abre um modal com nota, data e avaliação num só passo — cria/atualiza a avaliação e registra a audição juntas, com a mesma nota. Não duplica a UI da página do álbum, que continua com o fluxo completo (editar, excluir, histórico de audições).
+- **Estatísticas** (`/stats`): número de avaliações e audições, nota média, distribuição de notas, artistas mais avaliados e álbuns por década — tudo calculado a partir de `reviews` e `listens`, sem tabelas novas.
+- **Descoberta na Home**: "Populares esta semana" (álbuns mais avaliados nos últimos 30 dias) e "Avaliações em destaque" (as mais curtidas do app inteiro, não só de quem você segue). Cada seção some sozinha enquanto não há dado suficiente — não aparece "nada por aqui ainda" pro visitante.
+- **Busca de pessoas** (`/people`): por nome ou @usuário, mais uma lista de sugestões (pessoas mais seguidas no app que você ainda não segue). É a peça que faltava para "seguir" ser utilizável sem depender só de topar com alguém numa avaliação.
 
 ## API
 
@@ -75,7 +79,7 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | DELETE | `/api/favorites/:albumId` | Remove dos favoritos |
 | GET | `/api/listens?offset=` | Diário do usuário, do mais recente ao mais antigo. Retorna `{ items, hasMore }` em páginas de 50 |
 | GET | `/api/listens?albumId=` | Audições do usuário para um álbum |
-| POST | `/api/listens` | `{ albumId, listenedOn: "AAAA-MM-DD" }`: registra uma audição (não pode ser no futuro) |
+| POST | `/api/listens` | `{ albumId, listenedOn: "AAAA-MM-DD", rating? }`: registra uma audição (não pode ser no futuro); a nota é opcional e independente da avaliação |
 | DELETE | `/api/listens/:id` | Remove uma audição |
 | GET | `/api/users/:username` | Perfil público (nome e username; 404 se não existir) |
 | GET | `/api/users/:username/reviews` | Avaliações públicas desse usuário |
@@ -108,8 +112,13 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | POST | `/api/lists/:id/items` | `{ albumId }`: adiciona um álbum (só o dono) |
 | DELETE | `/api/lists/:id/items/:albumId` | Remove um álbum da lista (só o dono) |
 | GET | `/api/users/:username/lists` | Listas públicas desse usuário |
+| GET | `/api/discover/albums` | Álbuns mais avaliados recentemente (pública) |
+| GET | `/api/discover/reviews` | Avaliações mais curtidas do app, de qualquer usuário (pública) |
+| GET | `/api/stats` | Estatísticas do usuário logado (avaliações, audições, distribuição de notas, artistas, décadas) |
+| GET | `/api/people/search?q=` | Busca pessoas por nome ou username (pública) |
+| GET | `/api/people/suggested` | Pessoas mais seguidas no app que o usuário ainda não segue (pública) |
 
-As rotas `/api/reviews`, `/api/favorites`, `/api/listens`, `/api/track-favorites`, `/api/wishlist`, `/api/featured`, `/api/follows` e as escritas em `/api/lists` e `/api/review-social` exigem login (401 sem sessão). As rotas `/api/users/:username`, `/api/artists/:mbid`, `GET /api/lists/:id` e as leituras em `/api/review-social` são públicas.
+As rotas `/api/reviews`, `/api/favorites`, `/api/listens`, `/api/track-favorites`, `/api/wishlist`, `/api/featured`, `/api/follows`, `/api/stats` e as escritas em `/api/lists` e `/api/review-social` exigem login (401 sem sessão). As rotas `/api/users/:username`, `/api/artists/:mbid`, `/api/discover/*`, `/api/people/*`, `GET /api/lists/:id` e as leituras em `/api/review-social` são públicas.
 
 `/api/review-social` é montado como um router à parte de `/api/reviews`: este último aplica `requireAuth` a tudo que passa por ele, o que bloquearia a leitura pública de comentários se estivesse no mesmo router.
 
@@ -138,6 +147,9 @@ server/
       feed/              rotas, repository (feed)
       lists/             rotas, repository (listas públicas)
       profile/           rotas, repository (perfil público)
+      discover/          rotas, repository (populares na Home)
+      stats/             rotas, repository (estatísticas)
+      people/            rotas, repository (busca e sugestões)
     reviews/
       reviewSocial.routes.ts  curtidas e comentários (router à parte, ver acima)
 web/src/
@@ -149,13 +161,17 @@ web/src/
     artists/             página /artist/:mbid
     reviews/             formulário, input de estrelas, ReviewCard (curtir/comentar)
     favorites/           botão de favoritar
-    listens/             bloco "Suas audições" e página /diary
+    listens/             bloco "Suas audições" (com nota por audição) e página /diary
     wishlist/            botão "Quero ouvir"
     featured/            editor de "seus 4 favoritos" (biblioteca)
     share/               card para compartilhar (Canvas)
     follows/             botão de seguir
     feed/                página /feed
     lists/               "Minhas listas" (biblioteca), busca para adicionar álbum, página /list/:id
+    log/                 modal de registro rápido (LogButton/LogModal)
+    discover/            seções "Populares" e "Em destaque" da Home
+    stats/               página /stats, componente BarChart
+    people/              página /people, busca e sugestões
     profile/             página /u/:username
     home/ library/       páginas
 ```

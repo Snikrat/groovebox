@@ -5,15 +5,16 @@ import { formatRating } from '../../../shared/utils/format';
 interface StarRatingInputProps {
   value: number;
   onChange: (value: number) => void;
+  label?: string;
 }
 
 // Cada estrela tem duas metades clicáveis: a esquerda vale meia estrela, a direita a estrela inteira.
-export function StarRatingInput({ value, onChange }: StarRatingInputProps) {
+export function StarRatingInput({ value, onChange, label = 'Minha nota' }: StarRatingInputProps) {
   const [preview, setPreview] = useState<number | null>(null);
   const shown = preview ?? value;
 
   return (
-    <div className="star-input" role="radiogroup" aria-label="Minha nota" onMouseLeave={() => setPreview(null)}>
+    <div className="star-input" role="radiogroup" aria-label={label} onMouseLeave={() => setPreview(null)}>
       {[1, 2, 3, 4, 5].map((star) => (
         <span key={star} className="star-input__star">
           <StarIcon fill={starFill(shown, star)} />

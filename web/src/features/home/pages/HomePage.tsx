@@ -6,6 +6,8 @@ import { getErrorMessage } from '../../../shared/services/api';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { LoginPrompt } from '../../auth/components/LoginPrompt';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
+import { PopularAlbums } from '../../discover/components/PopularAlbums';
+import { PopularReviews } from '../../discover/components/PopularReviews';
 import { listReviews } from '../../reviews/services/reviewsApi';
 
 const RECENT_LIMIT = 6;
@@ -26,6 +28,9 @@ export function HomePage() {
       ) : (
         <LoginPrompt message="Crie uma conta para avaliar álbuns e montar sua biblioteca." />
       )}
+
+      <PopularAlbums />
+      <PopularReviews />
     </>
   );
 }
