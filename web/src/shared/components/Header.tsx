@@ -47,9 +47,9 @@ export function Header() {
           <div className="header__account">
             {user ? (
               <>
-                <span className="header__user" title={user.email}>
+                <Link to={`/u/${user.username}`} className="header__user" title={user.email}>
                   {user.name}
-                </span>
+                </Link>
                 <button
                   type="button"
                   className="link-button"

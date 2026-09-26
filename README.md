@@ -1,6 +1,6 @@
 # groovebox
 
-MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, favoritar, registrar audições num diário e ver a própria biblioteca.
+MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, favoritar, registrar audições num diário, ver a própria biblioteca e ter um perfil público para compartilhar.
 
 - **web/**: React + TypeScript + Vite, React Router, TanStack Query, Axios
 - **server/**: Node.js + TypeScript + Express, PostgreSQL (`pg`)
@@ -44,6 +44,7 @@ React ──/api──▶ Express ──▶ PostgreSQL
 - **Capas**: só a URL do Cover Art Archive é guardada (`NULL` se não houver capa). O frontend mostra um placeholder quando não há imagem.
 - **Autenticação**: email e senha. A senha é guardada com `scrypt`. O login cria uma sessão na tabela `sessions` e envia um cookie `httpOnly` com um token aleatório. O banco guarda só o hash SHA-256 do token. A sessão expira em 30 dias, e o logout a apaga no servidor. Busca e página de álbum são públicas; reviews, favoritos, diário e a biblioteca exigem login.
 - **Diário**: cada audição registrada (`listens`) tem só uma data, e o mesmo álbum pode ter várias. É separado da avaliação: a nota e o texto continuam sendo um por álbum. A página `/diary` agrupa as audições por mês e marca como "Reouvido" quando não é a primeira audição daquele álbum (calculado no banco com uma window function, considerando todas as audições do usuário, não só a página carregada).
+- **Perfil público** (`/u/:username`): mostra as avaliações e os favoritos de qualquer usuário, sem exigir login. O nome de usuário é gerado a partir do nome no cadastro (acentos viram "-"; um número é acrescentado se já existir) e não é editável nesta versão. Nunca expõe o email.
 
 ## API
 
@@ -68,8 +69,11 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | GET | `/api/listens?albumId=` | Audições do usuário para um álbum |
 | POST | `/api/listens` | `{ albumId, listenedOn: "AAAA-MM-DD" }`: registra uma audição (não pode ser no futuro) |
 | DELETE | `/api/listens/:id` | Remove uma audição |
+| GET | `/api/users/:username` | Perfil público (nome e username; 404 se não existir) |
+| GET | `/api/users/:username/reviews` | Avaliações públicas desse usuário |
+| GET | `/api/users/:username/favorites` | Favoritos públicos desse usuário |
 
-As rotas `/api/reviews`, `/api/favorites` e `/api/listens` exigem login (401 sem sessão) e sempre operam sobre o usuário logado.
+As rotas `/api/reviews`, `/api/favorites` e `/api/listens` exigem login (401 sem sessão) e sempre operam sobre o usuário logado. As rotas `/api/users/:username` são públicas.
 
 Notas vão de 0.5 a 5, em passos de 0.5. A regra é validada na API e por `CHECK` no banco.
 
@@ -88,6 +92,7 @@ server/
       reviews/           rotas, repository
       favorites/         rotas, repository
       listens/           rotas, repository (diário)
+      profile/           rotas, repository (perfil público)
 web/src/
   routes/                router e layout
   shared/                componentes (Header, busca, capa, estrelas, estados), api, utils
@@ -97,5 +102,6 @@ web/src/
     reviews/             formulário e input de estrelas
     favorites/           botão de favoritar
     listens/             bloco "Suas audições" e página /diary
+    profile/             página /u/:username
     home/ library/       páginas
 ```

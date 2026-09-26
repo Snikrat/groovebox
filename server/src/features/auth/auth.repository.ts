@@ -11,16 +11,23 @@ function hashToken(token: string): string {
 
 export async function findUserByEmail(email: string): Promise<UserWithPassword | null> {
   const { rows } = await pool.query<UserWithPassword>(
-    'SELECT id, name, email, password_hash AS "passwordHash" FROM users WHERE email = $1',
+    'SELECT id, name, username, email, password_hash AS "passwordHash" FROM users WHERE email = $1',
     [email],
   );
   return rows[0] ?? null;
 }
 
-export async function createUser(name: string, email: string, passwordHash: string): Promise<AuthUser> {
+export async function createUser(
+  name: string,
+  username: string,
+  email: string,
+  passwordHash: string,
+): Promise<AuthUser> {
   const { rows } = await pool.query<AuthUser>(
-    'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email',
-    [name, email, passwordHash],
+    `INSERT INTO users (name, username, email, password_hash)
+     VALUES ($1, $2, $3, $4)
+     RETURNING id, name, username, email`,
+    [name, username, email, passwordHash],
   );
   return rows[0];
 }
@@ -39,7 +46,7 @@ export async function createSession(userId: number): Promise<string> {
 
 export async function findUserBySessionToken(token: string): Promise<AuthUser | null> {
   const { rows } = await pool.query<AuthUser>(
-    `SELECT u.id, u.name, u.email
+    `SELECT u.id, u.name, u.username, u.email
        FROM sessions s
        JOIN users u ON u.id = s.user_id
       WHERE s.id = $1 AND s.expires_at > now()`,

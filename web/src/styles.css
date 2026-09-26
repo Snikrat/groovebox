@@ -156,6 +156,11 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  transition: color 0.15s;
+}
+
+.header__user:hover {
+  color: var(--accent);
 }
 
 .link-button {
@@ -602,6 +607,32 @@ textarea {
 .page-title em {
   font-style: italic;
   color: var(--ink-soft);
+}
+
+.profile-header {
+  margin-bottom: 40px;
+}
+
+.profile-header .page-title {
+  margin-bottom: 6px;
+}
+
+.profile-header__username {
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.profile-header__note {
+  margin-top: 16px;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.profile-header__note a {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .section + .section {
