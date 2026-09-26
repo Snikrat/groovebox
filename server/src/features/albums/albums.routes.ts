@@ -10,7 +10,10 @@ albumsRouter.get('/search', async (req, res) => {
   if (!term) throw new HttpError(400, 'Informe um termo de pesquisa.');
   if (term.length > 200) throw new HttpError(400, 'Termo de pesquisa muito longo.');
 
-  res.json(await searchAlbums(term));
+  const offset = req.query.offset === undefined ? 0 : Number(req.query.offset);
+  if (!Number.isInteger(offset) || offset < 0) throw new HttpError(400, 'offset inválido.');
+
+  res.json(await searchAlbums(term, offset));
 });
 
 albumsRouter.get('/:musicbrainzId', async (req, res) => {

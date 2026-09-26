@@ -52,13 +52,14 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | POST | `/api/auth/login` | `{ email, password }`: inicia a sessão |
 | POST | `/api/auth/logout` | Encerra a sessão |
 | GET | `/api/auth/me` | Usuário logado (`null` se não houver) |
-| GET | `/api/albums/search?q=` | Pesquisa álbuns no MusicBrainz |
+| GET | `/api/albums/search?q=&offset=` | Pesquisa álbuns no MusicBrainz. Retorna `{ items, hasMore }` em páginas de 24 |
 | GET | `/api/albums/:musicbrainzId` | Detalhes do álbum (importa na primeira vez) |
 | GET | `/api/albums/:musicbrainzId/tracks` | Tracklist |
 | GET | `/api/reviews` | Avaliações do usuário, com o álbum |
 | GET | `/api/reviews/:albumId` | Avaliação do usuário para o álbum (`null` se não houver) |
 | POST | `/api/reviews` | `{ albumId, rating, review }`: cria a avaliação (409 se já existir) |
 | PUT | `/api/reviews/:id` | `{ rating, review }`: edita a avaliação |
+| DELETE | `/api/reviews/:id` | Exclui a avaliação |
 | GET | `/api/favorites` | Favoritos do usuário, com a nota dada |
 | POST | `/api/favorites/:albumId` | Favorita (idempotente) |
 | DELETE | `/api/favorites/:albumId` | Remove dos favoritos |

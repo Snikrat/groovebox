@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
-import { createReview, getReviewForAlbum, updateReview } from '../services/reviewsApi';
+import { createReview, deleteReview, getReviewForAlbum, updateReview } from '../services/reviewsApi';
 import type { Review, ReviewInput } from '../types/review';
 import { StarRatingInput } from './StarRatingInput';
 
@@ -36,17 +36,37 @@ function ReviewEditor({ albumId, albumMusicbrainzId, existing }: ReviewEditorPro
   const [rating, setRating] = useState(existing?.rating ?? 0);
   const [text, setText] = useState(existing?.review ?? '');
 
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  // Nota média do álbum, biblioteca e favoritos dependem da avaliação.
+  function refreshRelated(review: Review | null) {
+    queryClient.setQueryData(['reviews', 'album', albumId], review);
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
+    queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    queryClient.invalidateQueries({ queryKey: ['albums', albumMusicbrainzId], exact: true });
+  }
+
   const mutation = useMutation({
     mutationFn: (input: ReviewInput) => (existing ? updateReview(existing.id, input) : createReview(albumId, input)),
     onSuccess: (saved) => {
-      queryClient.setQueryData(['reviews', 'album', albumId], saved);
-      queryClient.invalidateQueries({ queryKey: ['reviews'] });
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-      queryClient.invalidateQueries({ queryKey: ['albums', albumMusicbrainzId], exact: true });
+      deleteMutation.reset();
+      refreshRelated(saved);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteReview(id),
+    onSuccess: () => {
+      mutation.reset();
+      setConfirmingDelete(false);
+      setRating(0);
+      setText('');
+      refreshRelated(null);
     },
   });
 
   const isDirty = rating !== (existing?.rating ?? 0) || text.trim() !== (existing?.review ?? '');
+  const isBusy = mutation.isPending || deleteMutation.isPending;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -80,18 +100,49 @@ function ReviewEditor({ albumId, albumMusicbrainzId, existing }: ReviewEditorPro
       </div>
 
       <div className="review-form__actions">
-        <button type="submit" className="button button--primary" disabled={rating === 0 || !isDirty || mutation.isPending}>
+        <button type="submit" className="button button--primary" disabled={rating === 0 || !isDirty || isBusy}>
           {mutation.isPending ? 'Salvando…' : 'Salvar avaliação'}
         </button>
-        {rating === 0 && <span className="field__hint">Escolha uma nota para salvar.</span>}
+
+        {existing && !confirmingDelete && (
+          <button type="button" className="link-button" onClick={() => setConfirmingDelete(true)} disabled={isBusy}>
+            Excluir avaliação
+          </button>
+        )}
+
+        {existing && confirmingDelete && (
+          <span className="review-form__confirm">
+            Excluir sua avaliação?
+            <button
+              type="button"
+              className="link-button link-button--danger"
+              onClick={() => deleteMutation.mutate(existing.id)}
+              disabled={isBusy}
+            >
+              {deleteMutation.isPending ? 'Excluindo…' : 'Sim, excluir'}
+            </button>
+            <button type="button" className="link-button" onClick={() => setConfirmingDelete(false)} disabled={isBusy}>
+              Cancelar
+            </button>
+          </span>
+        )}
+
+        {rating === 0 && !deleteMutation.isSuccess && (
+          <span className="field__hint">Escolha uma nota para salvar.</span>
+        )}
         {mutation.isSuccess && !isDirty && (
           <span className="form-success" role="status">
             Avaliação salva.
           </span>
         )}
-        {mutation.isError && (
+        {deleteMutation.isSuccess && rating === 0 && (
+          <span className="form-success" role="status">
+            Avaliação excluída.
+          </span>
+        )}
+        {(mutation.isError || deleteMutation.isError) && (
           <span className="form-error" role="alert">
-            {getErrorMessage(mutation.error)}
+            {getErrorMessage(mutation.error ?? deleteMutation.error)}
           </span>
         )}
       </div>

@@ -82,7 +82,7 @@ function relevance(group: MbReleaseGroup): number {
  * Busca álbuns por título e por artista (duas consultas) e mescla os resultados,
  * ordenando por relevância.
  */
-export async function searchReleaseGroups(term: string, limit = 24): Promise<MbReleaseGroup[]> {
+export async function searchReleaseGroups(term: string): Promise<MbReleaseGroup[]> {
   const escaped = escapeLucene(term);
   const [byTitle, byArtist] = await Promise.all([
     searchReleaseGroupsByQuery(`(${escaped}) AND primarytype:album`),
@@ -95,7 +95,7 @@ export async function searchReleaseGroups(term: string, limit = 24): Promise<MbR
     if (!current || relevance(group) > relevance(current)) merged.set(group.id, group);
   }
 
-  return [...merged.values()].sort((a, b) => relevance(b) - relevance(a)).slice(0, limit);
+  return [...merged.values()].sort((a, b) => relevance(b) - relevance(a));
 }
 
 export function getReleaseGroup(mbid: string): Promise<MbReleaseGroup> {

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { AlbumGridSkeleton, EmptyState, ErrorState } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
@@ -9,9 +9,12 @@ export function SearchPage() {
   const [searchParams] = useSearchParams();
   const query = (searchParams.get('q') ?? '').trim();
 
-  const searchQuery = useQuery({
+  const searchQuery = useInfiniteQuery({
     queryKey: ['albums', 'search', query],
-    queryFn: () => searchAlbums(query),
+    queryFn: ({ pageParam }) => searchAlbums(query, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.hasMore ? pages.reduce((total, page) => total + page.items.length, 0) : undefined,
     enabled: query.length > 0,
     staleTime: 5 * 60 * 1000,
   });
@@ -25,6 +28,8 @@ export function SearchPage() {
     );
   }
 
+  const albums = searchQuery.data?.pages.flatMap((page) => page.items) ?? [];
+
   return (
     <section className="section">
       <h1 className="page-title">
@@ -33,16 +38,36 @@ export function SearchPage() {
 
       {searchQuery.isPending ? (
         <AlbumGridSkeleton count={12} />
-      ) : searchQuery.isError ? (
+      ) : searchQuery.isLoadingError ? (
         <ErrorState message={getErrorMessage(searchQuery.error)} onRetry={() => searchQuery.refetch()} />
-      ) : searchQuery.data.length === 0 ? (
+      ) : albums.length === 0 ? (
         <EmptyState>Nenhum álbum encontrado.</EmptyState>
       ) : (
-        <div className="album-grid">
-          {searchQuery.data.map((album) => (
-            <AlbumCard key={album.musicbrainzId} album={album} />
-          ))}
-        </div>
+        <>
+          <div className="album-grid">
+            {albums.map((album) => (
+              <AlbumCard key={album.musicbrainzId} album={album} />
+            ))}
+          </div>
+
+          {searchQuery.hasNextPage && (
+            <div className="load-more">
+              <button
+                type="button"
+                className="button"
+                onClick={() => searchQuery.fetchNextPage()}
+                disabled={searchQuery.isFetchingNextPage}
+              >
+                {searchQuery.isFetchingNextPage ? 'Carregando…' : 'Carregar mais'}
+              </button>
+              {searchQuery.isFetchNextPageError && (
+                <span className="form-error" role="alert">
+                  {getErrorMessage(searchQuery.error)}
+                </span>
+              )}
+            </div>
+          )}
+        </>
       )}
     </section>
   );

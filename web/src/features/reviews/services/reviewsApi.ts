@@ -21,3 +21,7 @@ export async function updateReview(id: number, input: ReviewInput): Promise<Revi
   const { data } = await api.put<Review>(`/reviews/${id}`, input);
   return data;
 }
+
+export async function deleteReview(id: number): Promise<void> {
+  await api.delete(`/reviews/${id}`);
+}

@@ -171,6 +171,16 @@ textarea {
   color: var(--ink);
 }
 
+.link-button--danger {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.link-button--danger:hover {
+  color: var(--danger);
+  text-decoration: underline;
+}
+
 /* ---------- Busca ---------- */
 
 .search {
@@ -493,10 +503,23 @@ textarea {
   text-overflow: ellipsis;
 }
 
+.album-card__caption {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .album-card__meta {
   margin-top: 4px;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 48px;
 }
 
 /* ---------- Estados: loading, erro, vazio ---------- */
@@ -742,6 +765,15 @@ textarea {
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
+}
+
+.review-form__confirm {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
 }
 
 .tracklist {

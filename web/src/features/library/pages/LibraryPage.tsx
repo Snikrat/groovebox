@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AlbumGridSkeleton, EmptyState, ErrorState } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
+import { formatDate } from '../../../shared/utils/format';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { listFavorites } from '../../favorites/services/favoritesApi';
 import { listReviews } from '../../reviews/services/reviewsApi';
@@ -28,7 +29,12 @@ export function LibraryPage() {
         ) : (
           <div className="album-grid">
             {reviewsQuery.data.map((review) => (
-              <AlbumCard key={review.id} album={review.album} rating={review.rating} />
+              <AlbumCard
+                key={review.id}
+                album={review.album}
+                rating={review.rating}
+                caption={`Avaliado em ${formatDate(review.updatedAt)}`}
+              />
             ))}
           </div>
         )}

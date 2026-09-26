@@ -11,6 +11,11 @@ export function formatDuration(ms: number | null): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
+/** "26 de set. de 2026" */
+export function formatDate(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export function formatRating(rating: number): string {
   return rating.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }

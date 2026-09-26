@@ -39,6 +39,12 @@ export async function createReview(userId: number, albumId: number, input: Revie
   return rows[0];
 }
 
+/** Retorna false quando a avaliação não existe ou pertence a outro usuário. */
+export async function deleteReview(userId: number, id: number): Promise<boolean> {
+  const { rowCount } = await pool.query('DELETE FROM reviews WHERE id = $1 AND user_id = $2', [id, userId]);
+  return rowCount === 1;
+}
+
 export async function updateReview(userId: number, id: number, input: ReviewInput): Promise<Review | null> {
   const { rows } = await pool.query<Review>(
     `UPDATE reviews AS r

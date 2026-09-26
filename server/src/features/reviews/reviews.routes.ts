@@ -3,7 +3,7 @@ import { requireAuth, requireUser } from '../auth/auth.middleware.js';
 import { HttpError } from '../../shared/httpError.js';
 import { isPgError, PG_FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION } from '../../shared/pgErrors.js';
 import { parseId } from '../../shared/validation.js';
-import { createReview, findReviewForAlbum, listReviews, updateReview } from './reviews.repository.js';
+import { createReview, deleteReview, findReviewForAlbum, listReviews, updateReview } from './reviews.repository.js';
 import type { ReviewInput } from './reviews.types.js';
 
 const MAX_REVIEW_LENGTH = 2000;
@@ -60,4 +60,11 @@ reviewsRouter.put('/:id', async (req, res) => {
   if (!review) throw new HttpError(404, 'Avaliação não encontrada.');
 
   res.json(review);
+});
+
+reviewsRouter.delete('/:id', async (req, res) => {
+  const deleted = await deleteReview(requireUser(req).id, parseId(req.params.id));
+  if (!deleted) throw new HttpError(404, 'Avaliação não encontrada.');
+
+  res.status(204).end();
 });

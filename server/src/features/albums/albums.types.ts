@@ -6,6 +6,11 @@ export interface AlbumSearchResult {
   coverUrl: string;
 }
 
+export interface AlbumSearchPage {
+  items: AlbumSearchResult[];
+  hasMore: boolean;
+}
+
 export interface AlbumSummary {
   id: number;
   musicbrainzId: string;

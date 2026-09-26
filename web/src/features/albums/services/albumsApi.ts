@@ -1,8 +1,8 @@
 import { api } from '../../../shared/services/api';
-import type { Album, AlbumSearchResult, Track } from '../types/album';
+import type { Album, AlbumSearchPage, Track } from '../types/album';
 
-export async function searchAlbums(query: string): Promise<AlbumSearchResult[]> {
-  const { data } = await api.get<AlbumSearchResult[]>('/albums/search', { params: { q: query } });
+export async function searchAlbums(query: string, offset = 0): Promise<AlbumSearchPage> {
+  const { data } = await api.get<AlbumSearchPage>('/albums/search', { params: { q: query, offset } });
   return data;
 }
 

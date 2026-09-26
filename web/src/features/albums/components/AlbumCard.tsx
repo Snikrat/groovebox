@@ -13,9 +13,11 @@ interface AlbumCardProps {
   };
   /** Nota do usuário, exibida na biblioteca e na Home. */
   rating?: number | null;
+  /** Linha extra abaixo do card, como a data da avaliação. */
+  caption?: string;
 }
 
-export function AlbumCard({ album, rating }: AlbumCardProps) {
+export function AlbumCard({ album, rating, caption }: AlbumCardProps) {
   const year = getYear(album.firstReleaseDate);
 
   return (
@@ -29,6 +31,7 @@ export function AlbumCard({ album, rating }: AlbumCardProps) {
             {rating != null ? <Stars rating={rating} size="sm" /> : <span>{year}</span>}
           </div>
         )}
+        {caption && <p className="album-card__caption">{caption}</p>}
       </div>
     </Link>
   );

@@ -8,14 +8,25 @@ import {
   tracksFrom,
 } from '../musicbrainz/normalize.js';
 import { findAlbumByMbid, insertAlbumWithTracks, listTracks } from './albums.repository.js';
-import type { Album, AlbumSearchResult, Track } from './albums.types.js';
+import type { Album, AlbumSearchPage, AlbumSearchResult, Track } from './albums.types.js';
 
 // Cache simples em memória para não repetir a mesma busca no MusicBrainz.
 const SEARCH_TTL_MS = 10 * 60 * 1000;
 const SEARCH_CACHE_MAX = 200;
 const searchCache = new Map<string, { expiresAt: number; results: AlbumSearchResult[] }>();
 
-export async function searchAlbums(term: string): Promise<AlbumSearchResult[]> {
+export const SEARCH_PAGE_SIZE = 24;
+
+export async function searchAlbums(term: string, offset: number): Promise<AlbumSearchPage> {
+  const results = await searchAllAlbums(term);
+  return {
+    items: results.slice(offset, offset + SEARCH_PAGE_SIZE),
+    hasMore: offset + SEARCH_PAGE_SIZE < results.length,
+  };
+}
+
+// A lista completa fica em cache; as páginas seguintes não consultam o MusicBrainz de novo.
+async function searchAllAlbums(term: string): Promise<AlbumSearchResult[]> {
   const key = term.toLowerCase();
   const cached = searchCache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.results;
