@@ -49,3 +49,22 @@ export function todayIsoDate(): string {
 export function formatRating(rating: number): string {
   return rating.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
+
+/** "42 min" ou "1h 12min", a partir da soma das faixas. */
+export function formatTotalDuration(ms: number): string {
+  const totalMinutes = Math.round(ms / 60_000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
+}
+
+const countryNames = new Intl.DisplayNames(['pt-BR'], { type: 'region' });
+
+/** Nome do país em português a partir do código ISO 3166-1 alpha-2 (ex. "US" → "Estados Unidos"). */
+export function formatCountry(code: string): string {
+  try {
+    return countryNames.of(code) ?? code;
+  } catch {
+    return code;
+  }
+}

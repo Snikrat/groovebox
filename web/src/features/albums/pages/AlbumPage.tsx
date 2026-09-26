@@ -4,7 +4,7 @@ import { AlbumCover } from '../../../shared/components/AlbumCover';
 import { Stars } from '../../../shared/components/Stars';
 import { ErrorState, Loading } from '../../../shared/components/StateMessage';
 import { getErrorMessage } from '../../../shared/services/api';
-import { formatRating, getYear } from '../../../shared/utils/format';
+import { formatCountry, formatRating, formatTotalDuration, getYear } from '../../../shared/utils/format';
 import { LoginPrompt } from '../../auth/components/LoginPrompt';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
 import { FavoriteButton } from '../../favorites/components/FavoriteButton';
@@ -34,6 +34,11 @@ export function AlbumPage() {
 
   const album = albumQuery.data;
   const year = getYear(album.firstReleaseDate);
+  const facts = [
+    album.label,
+    album.country && formatCountry(album.country),
+    album.totalDurationMs && formatTotalDuration(album.totalDurationMs),
+  ].filter((fact): fact is string => Boolean(fact));
 
   return (
     <article className="album">
@@ -53,6 +58,31 @@ export function AlbumPage() {
             <p className="album__artist">{album.artistName}</p>
           )}
           {year && <p className="album__year">{year}</p>}
+
+          {album.genres.length > 0 && (
+            <ul className="album__genres">
+              {album.genres.map((genre) => (
+                <li key={genre} className="tag">
+                  {genre}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {facts.length > 0 && <p className="album__facts">{facts.join(' · ')}</p>}
+
+          {album.externalLinks.length > 0 && (
+            <p className="album__links">
+              {album.externalLinks.map((link, index) => (
+                <span key={link.label}>
+                  {index > 0 && ' · '}
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {link.label}
+                  </a>
+                </span>
+              ))}
+            </p>
+          )}
 
           <div className="album__average">
             {album.averageRating !== null ? (

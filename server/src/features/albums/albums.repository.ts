@@ -22,6 +22,11 @@ export async function findAlbumByMbid(mbid: string): Promise<Album | null> {
             a.first_release_date    AS "firstReleaseDate",
             a.primary_type          AS "primaryType",
             a.cover_url             AS "coverUrl",
+            coalesce(a.genres, '{}') AS "genres",
+            a.label,
+            a.country,
+            coalesce(a.external_links, '[]') AS "externalLinks",
+            (SELECT SUM(duration_ms)::int FROM tracks WHERE album_id = a.id) AS "totalDurationMs",
             ROUND(AVG(r.rating), 2) AS "averageRating",
             COUNT(r.id)::int        AS "ratingsCount"
        FROM albums a
@@ -39,8 +44,11 @@ export async function insertAlbumWithTracks(album: NewAlbum, tracks: NormalizedT
     await client.query('BEGIN');
 
     const { rows } = await client.query<{ id: number }>(
-      `INSERT INTO albums (musicbrainz_id, title, artist_name, artist_musicbrainz_id, first_release_date, primary_type, cover_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO albums (
+         musicbrainz_id, title, artist_name, artist_musicbrainz_id, first_release_date,
+         primary_type, cover_url, genres, label, country, external_links
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
        ON CONFLICT (musicbrainz_id) DO NOTHING
        RETURNING id`,
       [
@@ -51,6 +59,10 @@ export async function insertAlbumWithTracks(album: NewAlbum, tracks: NormalizedT
         album.firstReleaseDate,
         album.primaryType,
         album.coverUrl,
+        album.genres,
+        album.label,
+        album.country,
+        JSON.stringify(album.externalLinks),
       ],
     );
 

@@ -99,11 +99,15 @@ export async function searchReleaseGroups(term: string): Promise<MbReleaseGroup[
 }
 
 export function getReleaseGroup(mbid: string): Promise<MbReleaseGroup> {
-  return get<MbReleaseGroup>(`/release-group/${mbid}`, { inc: 'artist-credits+releases' }, 'Álbum não encontrado.');
+  return get<MbReleaseGroup>(
+    `/release-group/${mbid}`,
+    { inc: 'artist-credits+releases+genres+url-rels' },
+    'Álbum não encontrado.',
+  );
 }
 
 export function getRelease(mbid: string): Promise<MbRelease> {
-  return get<MbRelease>(`/release/${mbid}`, { inc: 'recordings' }, 'Álbum não encontrado.');
+  return get<MbRelease>(`/release/${mbid}`, { inc: 'recordings+labels' }, 'Álbum não encontrado.');
 }
 
 export function getArtist(mbid: string): Promise<MbArtist> {

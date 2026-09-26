@@ -20,11 +20,23 @@ export interface AlbumSummary {
   coverUrl: string | null;
 }
 
+export interface ExternalLink {
+  label: string;
+  url: string;
+}
+
 export interface Album extends AlbumSummary {
   artistMusicbrainzId: string | null;
   primaryType: string | null;
   averageRating: number | null;
   ratingsCount: number;
+  genres: string[];
+  label: string | null;
+  /** Código ISO 3166-1 alpha-2 do país de lançamento, ex. "US". */
+  country: string | null;
+  externalLinks: ExternalLink[];
+  /** Soma da duração das faixas; null se nenhuma tiver duração conhecida. */
+  totalDurationMs: number | null;
 }
 
 export interface Track {

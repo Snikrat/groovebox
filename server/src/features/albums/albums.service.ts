@@ -3,6 +3,9 @@ import { getRelease, getReleaseGroup, searchReleaseGroups } from '../musicbrainz
 import {
   artistIdFrom,
   artistNameFrom,
+  externalLinksFrom,
+  genresFrom,
+  labelNameFrom,
   pickRepresentativeRelease,
   releaseDateFrom,
   tracksFrom,
@@ -65,8 +68,9 @@ export async function getOrImportAlbum(mbid: string): Promise<Album> {
 
 async function importAlbum(mbid: string): Promise<Album> {
   const group = await getReleaseGroup(mbid);
-  const release = pickRepresentativeRelease(group.releases);
-  const tracks = release ? tracksFrom(await getRelease(release.id)) : [];
+  const releaseSummary = pickRepresentativeRelease(group.releases);
+  const releaseDetail = releaseSummary ? await getRelease(releaseSummary.id) : null;
+  const tracks = releaseDetail ? tracksFrom(releaseDetail) : [];
   const coverUrl = await findCoverUrl(mbid);
 
   await insertAlbumWithTracks(
@@ -78,6 +82,10 @@ async function importAlbum(mbid: string): Promise<Album> {
       firstReleaseDate: releaseDateFrom(group),
       primaryType: group['primary-type'] ?? null,
       coverUrl,
+      genres: genresFrom(group),
+      label: releaseDetail ? labelNameFrom(releaseDetail) : null,
+      country: releaseDetail?.country ?? null,
+      externalLinks: externalLinksFrom(group),
     },
     tracks,
   );
