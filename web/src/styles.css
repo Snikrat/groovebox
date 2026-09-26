@@ -776,6 +776,61 @@ textarea {
   color: var(--ink-soft);
 }
 
+.listen-log {
+  display: grid;
+  gap: 16px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.listen-log__header {
+  display: grid;
+  gap: 4px;
+}
+
+.listen-log__summary {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.listen-log__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listen-log__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+
+.listen-log__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.listen-log__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.listen-log__form .input {
+  width: auto;
+  height: 44px;
+}
+
 .tracklist {
   margin: 0;
   padding: 0;
@@ -858,6 +913,101 @@ textarea {
   gap: 12px;
 }
 
+/* ---------- Diário ---------- */
+
+.diary-month + .diary-month {
+  margin-top: 40px;
+}
+
+.diary-month__title {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.diary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.diary-row__link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.diary-row__day {
+  flex-shrink: 0;
+  width: 2.5ch;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.diary-row__cover {
+  flex-shrink: 0;
+  width: 44px;
+}
+
+.diary-row__cover .cover {
+  border-radius: 4px;
+}
+
+.diary-row__info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.diary-row__album {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.diary-row__artist {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.diary-row__badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.diary-row__remove {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
 /* ---------- Responsivo ---------- */
 
 @media (max-width: 800px) {
@@ -909,5 +1059,17 @@ textarea {
   .star-input .star__fill svg {
     width: 30px;
     height: 30px;
+  }
+
+  .diary-row {
+    gap: 10px;
+  }
+
+  .diary-row__link {
+    gap: 10px;
+  }
+
+  .diary-row .stars {
+    display: none;
   }
 }

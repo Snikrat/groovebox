@@ -8,6 +8,7 @@ import { formatRating, getYear } from '../../../shared/utils/format';
 import { LoginPrompt } from '../../auth/components/LoginPrompt';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
 import { FavoriteButton } from '../../favorites/components/FavoriteButton';
+import { ListenLog } from '../../listens/components/ListenLog';
 import { ReviewForm } from '../../reviews/components/ReviewForm';
 import { TrackList } from '../components/TrackList';
 import { getAlbum } from '../services/albumsApi';
@@ -62,6 +63,7 @@ export function AlbumPage() {
             <>
               <FavoriteButton albumId={album.id} />
               <ReviewForm key={album.id} albumId={album.id} albumMusicbrainzId={album.musicbrainzId} />
+              <ListenLog key={album.id} albumId={album.id} />
             </>
           ) : (
             !isUserPending && <LoginPrompt message="Entre para dar sua nota, escrever uma avaliação e favoritar." />

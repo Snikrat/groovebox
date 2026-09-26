@@ -6,6 +6,7 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
 import { HomePage } from '../features/home/pages/HomePage';
 import { LibraryPage } from '../features/library/pages/LibraryPage';
+import { DiaryPage } from '../features/listens/pages/DiaryPage';
 import { EmptyState } from '../shared/components/StateMessage';
 import { RootLayout } from './RootLayout';
 
@@ -21,6 +22,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <LibraryPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: '/diary',
+        element: (
+          <RequireAuth>
+            <DiaryPage />
           </RequireAuth>
         ),
       },

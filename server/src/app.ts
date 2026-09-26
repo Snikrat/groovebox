@@ -5,6 +5,7 @@ import { albumsRouter } from './features/albums/albums.routes.js';
 import { loadUser } from './features/auth/auth.middleware.js';
 import { authRouter } from './features/auth/auth.routes.js';
 import { favoritesRouter } from './features/favorites/favorites.routes.js';
+import { listensRouter } from './features/listens/listens.routes.js';
 import { reviewsRouter } from './features/reviews/reviews.routes.js';
 import { HttpError } from './shared/httpError.js';
 
@@ -19,6 +20,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/albums', albumsRouter);
 app.use('/api/reviews', reviewsRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/listens', listensRouter);
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Rota não encontrada.' });

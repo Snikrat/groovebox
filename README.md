@@ -1,6 +1,6 @@
 # groovebox
 
-MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, favoritar e ver a própria biblioteca.
+MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, favoritar, registrar audições num diário e ver a própria biblioteca.
 
 - **web/**: React + TypeScript + Vite, React Router, TanStack Query, Axios
 - **server/**: Node.js + TypeScript + Express, PostgreSQL (`pg`)
@@ -42,7 +42,8 @@ React ──/api──▶ Express ──▶ PostgreSQL
 - **Busca** (`GET /api/albums/search?q=`): consulta o MusicBrainz por título e por artista e ordena por relevância (score × número de edições oficiais, já que a API não tem noção de popularidade). Nada é salvo no banco.
 - **Álbum** (`GET /api/albums/:mbid`): se ainda não existe no banco, o backend busca o release-group, escolhe uma edição representativa (a release oficial mais antiga), busca a tracklist e verifica se há capa no Cover Art Archive. Álbum e faixas são salvos em uma transação. O banco local cresce conforme o uso.
 - **Capas**: só a URL do Cover Art Archive é guardada (`NULL` se não houver capa). O frontend mostra um placeholder quando não há imagem.
-- **Autenticação**: email e senha. A senha é guardada com `scrypt`. O login cria uma sessão na tabela `sessions` e envia um cookie `httpOnly` com um token aleatório. O banco guarda só o hash SHA-256 do token. A sessão expira em 30 dias, e o logout a apaga no servidor. Busca e página de álbum são públicas; reviews, favoritos e a biblioteca exigem login.
+- **Autenticação**: email e senha. A senha é guardada com `scrypt`. O login cria uma sessão na tabela `sessions` e envia um cookie `httpOnly` com um token aleatório. O banco guarda só o hash SHA-256 do token. A sessão expira em 30 dias, e o logout a apaga no servidor. Busca e página de álbum são públicas; reviews, favoritos, diário e a biblioteca exigem login.
+- **Diário**: cada audição registrada (`listens`) tem só uma data, e o mesmo álbum pode ter várias. É separado da avaliação: a nota e o texto continuam sendo um por álbum. A página `/diary` agrupa as audições por mês e marca como "Reouvido" quando não é a primeira audição daquele álbum (calculado no banco com uma window function, considerando todas as audições do usuário, não só a página carregada).
 
 ## API
 
@@ -63,8 +64,12 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | GET | `/api/favorites` | Favoritos do usuário, com a nota dada |
 | POST | `/api/favorites/:albumId` | Favorita (idempotente) |
 | DELETE | `/api/favorites/:albumId` | Remove dos favoritos |
+| GET | `/api/listens?offset=` | Diário do usuário, do mais recente ao mais antigo. Retorna `{ items, hasMore }` em páginas de 50 |
+| GET | `/api/listens?albumId=` | Audições do usuário para um álbum |
+| POST | `/api/listens` | `{ albumId, listenedOn: "AAAA-MM-DD" }`: registra uma audição (não pode ser no futuro) |
+| DELETE | `/api/listens/:id` | Remove uma audição |
 
-As rotas `/api/reviews` e `/api/favorites` exigem login (401 sem sessão) e sempre operam sobre o usuário logado.
+As rotas `/api/reviews`, `/api/favorites` e `/api/listens` exigem login (401 sem sessão) e sempre operam sobre o usuário logado.
 
 Notas vão de 0.5 a 5, em passos de 0.5. A regra é validada na API e por `CHECK` no banco.
 
@@ -82,6 +87,7 @@ server/
       albums/            rotas, service (importação), repository
       reviews/           rotas, repository
       favorites/         rotas, repository
+      listens/           rotas, repository (diário)
 web/src/
   routes/                router e layout
   shared/                componentes (Header, busca, capa, estrelas, estados), api, utils
@@ -90,5 +96,6 @@ web/src/
     albums/              busca, detalhes, card, tracklist
     reviews/             formulário e input de estrelas
     favorites/           botão de favoritar
+    listens/             bloco "Suas audições" e página /diary
     home/ library/       páginas
 ```

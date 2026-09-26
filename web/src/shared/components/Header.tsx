@@ -33,6 +33,7 @@ export function Header() {
             Home
           </NavLink>
           <NavLink to="/library">Minha biblioteca</NavLink>
+          <NavLink to="/diary">Diário</NavLink>
         </nav>
 
         {/* A Home já tem o campo de busca em destaque. */}
