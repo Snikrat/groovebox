@@ -1,6 +1,6 @@
 import { config } from '../../config.js';
 import { HttpError } from '../../shared/httpError.js';
-import type { MbRelease, MbReleaseGroup, MbReleaseGroupSearchResponse } from './musicbrainz.types.js';
+import type { MbArtist, MbRelease, MbReleaseGroup, MbReleaseGroupSearchResponse } from './musicbrainz.types.js';
 
 const BASE_URL = 'https://musicbrainz.org/ws/2';
 
@@ -35,7 +35,7 @@ async function request(url: URL): Promise<Response> {
   }
 }
 
-function get<T>(path: string, params: Record<string, string>): Promise<T> {
+function get<T>(path: string, params: Record<string, string>, notFoundMessage = 'Recurso não encontrado.'): Promise<T> {
   return enqueue(async () => {
     const url = new URL(`${BASE_URL}${path}`);
     for (const [key, value] of Object.entries({ ...params, fmt: 'json' })) {
@@ -51,7 +51,7 @@ function get<T>(path: string, params: Record<string, string>): Promise<T> {
     }
 
     // Para MBIDs inexistentes o MusicBrainz pode responder 400 ou 404.
-    if (response.status === 404 || response.status === 400) throw new HttpError(404, 'Álbum não encontrado.');
+    if (response.status === 404 || response.status === 400) throw new HttpError(404, notFoundMessage);
     if (response.status === 503) {
       throw new HttpError(503, 'O MusicBrainz está ocupado no momento. Tente novamente em instantes.');
     }
@@ -99,9 +99,23 @@ export async function searchReleaseGroups(term: string): Promise<MbReleaseGroup[
 }
 
 export function getReleaseGroup(mbid: string): Promise<MbReleaseGroup> {
-  return get<MbReleaseGroup>(`/release-group/${mbid}`, { inc: 'artist-credits+releases' });
+  return get<MbReleaseGroup>(`/release-group/${mbid}`, { inc: 'artist-credits+releases' }, 'Álbum não encontrado.');
 }
 
 export function getRelease(mbid: string): Promise<MbRelease> {
-  return get<MbRelease>(`/release/${mbid}`, { inc: 'recordings' });
+  return get<MbRelease>(`/release/${mbid}`, { inc: 'recordings' }, 'Álbum não encontrado.');
+}
+
+export function getArtist(mbid: string): Promise<MbArtist> {
+  return get<MbArtist>(`/artist/${mbid}`, {}, 'Artista não encontrado.');
+}
+
+/** Lista os release-groups do tipo "álbum" de um artista (até 100), sem filtrar edições. */
+export async function browseReleaseGroupsByArtist(artistMbid: string): Promise<MbReleaseGroup[]> {
+  const data = await get<MbReleaseGroupSearchResponse>('/release-group', {
+    artist: artistMbid,
+    type: 'album',
+    limit: '100',
+  });
+  return data['release-groups'];
 }

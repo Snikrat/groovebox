@@ -14,7 +14,7 @@ export function FavoriteButton({ albumId }: { albumId: number }) {
   });
 
   return (
-    <div className="favorite">
+    <>
       <button
         type="button"
         className={`button favorite__button${isFavorite ? ' is-active' : ''}`}
@@ -32,6 +32,6 @@ export function FavoriteButton({ albumId }: { albumId: number }) {
           {getErrorMessage(mutation.error ?? favoritesQuery.error)}
         </span>
       )}
-    </div>
+    </>
   );
 }

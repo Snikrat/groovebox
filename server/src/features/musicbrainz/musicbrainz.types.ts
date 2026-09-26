@@ -10,11 +10,18 @@ export interface MbReleaseGroup {
   id: string;
   title: string;
   'primary-type'?: string | null;
+  /** Ex.: "Live", "Compilation", "Soundtrack" — usado para filtrar a discografia principal. */
+  'secondary-types'?: string[];
   'first-release-date'?: string;
   /** Presente apenas em resultados de busca (0 a 100). */
   score?: number;
   'artist-credit'?: MbArtistCredit[];
   releases?: MbReleaseSummary[];
+}
+
+export interface MbArtist {
+  id: string;
+  name: string;
 }
 
 export interface MbReleaseSummary {

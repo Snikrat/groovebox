@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { HttpError } from '../../shared/httpError.js';
 import { listFavorites } from '../favorites/favorites.repository.js';
+import { listFeatured } from '../featured/featured.repository.js';
 import { listReviews } from '../reviews/reviews.repository.js';
 import { findPublicProfile } from './profile.repository.js';
 
@@ -25,4 +26,9 @@ profileRouter.get('/:username/reviews', async (req, res) => {
 profileRouter.get('/:username/favorites', async (req, res) => {
   const { id } = await requireProfile(req.params.username);
   res.json(await listFavorites(id));
+});
+
+profileRouter.get('/:username/featured', async (req, res) => {
+  const { id } = await requireProfile(req.params.username);
+  res.json(await listFeatured(id));
 });

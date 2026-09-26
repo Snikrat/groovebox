@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AlbumPage } from '../features/albums/pages/AlbumPage';
 import { SearchPage } from '../features/albums/pages/SearchPage';
+import { ArtistPage } from '../features/artists/pages/ArtistPage';
 import { RequireAuth } from '../features/auth/components/RequireAuth';
 import { LoginPage } from '../features/auth/pages/LoginPage';
 import { RegisterPage } from '../features/auth/pages/RegisterPage';
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/search', element: <SearchPage /> },
       { path: '/album/:musicbrainzId', element: <AlbumPage /> },
+      { path: '/artist/:musicbrainzId', element: <ArtistPage /> },
       {
         path: '/library',
         element: (

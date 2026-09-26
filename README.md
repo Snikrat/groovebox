@@ -1,6 +1,6 @@
 # groovebox
 
-MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, favoritar, registrar audições num diário, ver a própria biblioteca e ter um perfil público para compartilhar.
+MVP de uma aplicação para avaliar álbuns musicais: pesquisar, abrir um álbum, dar nota, escrever uma avaliação, marcar faixas favoritas, favoritar o álbum, guardar numa lista "quero ouvir", registrar audições num diário, ver a discografia de um artista, destacar seus 4 álbuns favoritos, gerar um card para compartilhar e ter um perfil público.
 
 - **web/**: React + TypeScript + Vite, React Router, TanStack Query, Axios
 - **server/**: Node.js + TypeScript + Express, PostgreSQL (`pg`)
@@ -44,7 +44,12 @@ React ──/api──▶ Express ──▶ PostgreSQL
 - **Capas**: só a URL do Cover Art Archive é guardada (`NULL` se não houver capa). O frontend mostra um placeholder quando não há imagem.
 - **Autenticação**: email e senha. A senha é guardada com `scrypt`. O login cria uma sessão na tabela `sessions` e envia um cookie `httpOnly` com um token aleatório. O banco guarda só o hash SHA-256 do token. A sessão expira em 30 dias, e o logout a apaga no servidor. Busca e página de álbum são públicas; reviews, favoritos, diário e a biblioteca exigem login.
 - **Diário**: cada audição registrada (`listens`) tem só uma data, e o mesmo álbum pode ter várias. É separado da avaliação: a nota e o texto continuam sendo um por álbum. A página `/diary` agrupa as audições por mês e marca como "Reouvido" quando não é a primeira audição daquele álbum (calculado no banco com uma window function, considerando todas as audições do usuário, não só a página carregada).
-- **Perfil público** (`/u/:username`): mostra as avaliações e os favoritos de qualquer usuário, sem exigir login. O nome de usuário é gerado a partir do nome no cadastro (acentos viram "-"; um número é acrescentado se já existir) e não é editável nesta versão. Nunca expõe o email.
+- **Perfil público** (`/u/:username`): mostra os 4 favoritos em destaque, as avaliações e os favoritos de qualquer usuário, sem exigir login. O nome de usuário é gerado a partir do nome no cadastro (acentos viram "-"; um número é acrescentado se já existir) e não é editável nesta versão. Nunca expõe o email.
+- **Artista** (`/artist/:mbid`): lista a discografia principal (álbuns de estúdio; ao vivo, coletâneas e trilhas sonoras ficam de fora) consultando o MusicBrainz direto, com cache de 10 min — não é importada para o banco. Sobrepõe a nota do usuário logado em cada álbum já avaliado.
+- **Faixas favoritas**: marcação simples (sem nota), independente por faixa. Aparece como um coração ao lado de cada faixa na página do álbum.
+- **Quero ouvir**: lista separada da de favoritos, para álbuns que a pessoa ainda não ouviu. Ao criar a primeira avaliação de um álbum, ele sai da lista automaticamente.
+- **Seus 4 favoritos**: até 4 álbuns fixados no topo do perfil público, escolhidos entre os que a pessoa já avaliou ou favoritou (não há busca dedicada para isso nesta versão). Editado na biblioteca; a ordem é a ordem em que foram adicionados.
+- **Card para compartilhar**: gerado inteiramente no navegador via Canvas (capa, título, artista, nota e um trecho da avaliação), sem passar pelo backend. Aparece só depois de avaliar o álbum. A capa é desenhada com `crossOrigin="anonymous"` — o Cover Art Archive permite CORS — e cai num visual de fallback se a capa não existir ou não carregar.
 
 ## API
 
@@ -72,8 +77,18 @@ React ──/api──▶ Express ──▶ PostgreSQL
 | GET | `/api/users/:username` | Perfil público (nome e username; 404 se não existir) |
 | GET | `/api/users/:username/reviews` | Avaliações públicas desse usuário |
 | GET | `/api/users/:username/favorites` | Favoritos públicos desse usuário |
+| GET | `/api/users/:username/featured` | Os 4 favoritos em destaque desse usuário |
+| GET | `/api/artists/:musicbrainzId` | Nome e discografia principal do artista |
+| GET | `/api/track-favorites?albumId=` | Ids das faixas favoritas do usuário nesse álbum |
+| POST | `/api/track-favorites/:trackId` | Marca a faixa como favorita (idempotente) |
+| DELETE | `/api/track-favorites/:trackId` | Desmarca a faixa |
+| GET | `/api/wishlist` | Lista "quero ouvir" do usuário |
+| POST | `/api/wishlist/:albumId` | Adiciona à lista (idempotente) |
+| DELETE | `/api/wishlist/:albumId` | Remove da lista |
+| GET | `/api/featured` | Os 4 favoritos do usuário logado, em ordem |
+| PUT | `/api/featured` | `{ albumIds: number[] }`: substitui a lista inteira (até 4, sem repetir) |
 
-As rotas `/api/reviews`, `/api/favorites` e `/api/listens` exigem login (401 sem sessão) e sempre operam sobre o usuário logado. As rotas `/api/users/:username` são públicas.
+As rotas `/api/reviews`, `/api/favorites`, `/api/listens`, `/api/track-favorites`, `/api/wishlist` e `/api/featured` exigem login (401 sem sessão) e sempre operam sobre o usuário logado. As rotas `/api/users/:username` e `/api/artists/:mbid` são públicas.
 
 Notas vão de 0.5 a 5, em passos de 0.5. A regra é validada na API e por `CHECK` no banco.
 
@@ -89,19 +104,27 @@ server/
       auth/              cadastro, login, sessões, middleware
       musicbrainz/       cliente (rate limit), normalização, Cover Art Archive
       albums/            rotas, service (importação), repository
+      artists/           rotas, service (discografia via MusicBrainz, com cache)
       reviews/           rotas, repository
       favorites/         rotas, repository
       listens/           rotas, repository (diário)
+      track-favorites/   rotas, repository (faixas favoritas)
+      wishlist/          rotas, repository ("quero ouvir")
+      featured/          rotas, repository ("seus 4 favoritos")
       profile/           rotas, repository (perfil público)
 web/src/
   routes/                router e layout
   shared/                componentes (Header, busca, capa, estrelas, estados), api, utils
   features/
     auth/                login, cadastro, usuário atual, proteção de rotas
-    albums/              busca, detalhes, card, tracklist
+    albums/              busca, detalhes, card, tracklist (com faixas favoritas)
+    artists/             página /artist/:mbid
     reviews/             formulário e input de estrelas
     favorites/           botão de favoritar
     listens/             bloco "Suas audições" e página /diary
+    wishlist/            botão "Quero ouvir"
+    featured/            editor de "seus 4 favoritos" (biblioteca)
+    share/               card para compartilhar (Canvas)
     profile/             página /u/:username
     home/ library/       páginas
 ```

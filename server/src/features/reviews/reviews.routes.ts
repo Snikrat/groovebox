@@ -5,6 +5,7 @@ import { isPgError, PG_FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION } from '../../
 import { parseId } from '../../shared/validation.js';
 import { createReview, deleteReview, findReviewForAlbum, listReviews, updateReview } from './reviews.repository.js';
 import type { ReviewInput } from './reviews.types.js';
+import { removeFromWishlist } from '../wishlist/wishlist.repository.js';
 
 const MAX_REVIEW_LENGTH = 2000;
 
@@ -45,8 +46,13 @@ reviewsRouter.post('/', async (req, res) => {
   const albumId = parseId(req.body?.albumId, 'albumId');
   const input = parseReviewInput(req.body);
 
+  const userId = requireUser(req).id;
+
   try {
-    res.status(201).json(await createReview(requireUser(req).id, albumId, input));
+    const review = await createReview(userId, albumId, input);
+    // Já foi ouvido e avaliado: não faz mais sentido continuar na lista "quero ouvir".
+    await removeFromWishlist(userId, albumId);
+    res.status(201).json(review);
   } catch (error) {
     if (isPgError(error, PG_UNIQUE_VIOLATION)) throw new HttpError(409, 'Você já avaliou este álbum.');
     if (isPgError(error, PG_FOREIGN_KEY_VIOLATION)) throw new HttpError(404, 'Álbum não encontrado.');

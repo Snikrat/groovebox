@@ -5,7 +5,7 @@ import { getErrorMessage } from '../../../shared/services/api';
 import { formatDate } from '../../../shared/utils/format';
 import { AlbumCard } from '../../albums/components/AlbumCard';
 import { useCurrentUser } from '../../auth/hooks/useCurrentUser';
-import { getPublicFavorites, getPublicProfile, getPublicReviews } from '../services/profileApi';
+import { getPublicFavorites, getPublicFeatured, getPublicProfile, getPublicReviews } from '../services/profileApi';
 
 export function ProfilePage() {
   const { username = '' } = useParams();
@@ -25,6 +25,12 @@ export function ProfilePage() {
   const favoritesQuery = useQuery({
     queryKey: ['profile', username, 'favorites'],
     queryFn: () => getPublicFavorites(username),
+    enabled: profileQuery.isSuccess,
+  });
+
+  const featuredQuery = useQuery({
+    queryKey: ['profile', username, 'featured'],
+    queryFn: () => getPublicFeatured(username),
     enabled: profileQuery.isSuccess,
   });
 
@@ -48,6 +54,17 @@ export function ProfilePage() {
           </p>
         )}
       </div>
+
+      {featuredQuery.data && featuredQuery.data.length > 0 && (
+        <section className="section">
+          <h2 className="section__title">Favoritos de sempre</h2>
+          <div className="album-grid">
+            {featuredQuery.data.map((item) => (
+              <AlbumCard key={item.album.id} album={item.album} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="section">
         <div className="section__header">

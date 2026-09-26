@@ -676,6 +676,72 @@ textarea {
   color: var(--muted);
 }
 
+.section__hint {
+  margin-top: -14px;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ---------- Seus 4 favoritos ---------- */
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 24px;
+  max-width: 720px;
+}
+
+.featured-slot {
+  display: grid;
+  gap: 10px;
+}
+
+.featured-slot--filled .cover {
+  box-shadow: var(--shadow);
+}
+
+.featured-slot__remove {
+  justify-self: start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.featured-slot__remove:hover {
+  color: var(--danger);
+}
+
+.featured-slot--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  padding: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.featured-slot__hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.featured-slot__select {
+  width: 100%;
+  height: 38px;
+  padding: 0 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.85rem;
+}
+
 .eyebrow {
   font-size: 0.78rem;
   font-weight: 600;
@@ -742,8 +808,17 @@ textarea {
 }
 
 .album__artist {
+  display: inline-block;
   font-size: 1.25rem;
   color: var(--ink-soft);
+}
+
+.album__artist--link {
+  transition: color 0.15s;
+}
+
+.album__artist--link:hover {
+  color: var(--accent);
 }
 
 .album__year {
@@ -759,14 +834,16 @@ textarea {
   color: var(--ink-soft);
 }
 
-.favorite {
+.album__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   margin-bottom: 28px;
 }
 
-.favorite__button svg {
+.favorite__button svg,
+.wishlist__button svg {
   width: 18px;
   height: 18px;
   fill: none;
@@ -774,13 +851,15 @@ textarea {
   stroke-width: 1.8;
 }
 
-.favorite__button.is-active {
+.favorite__button.is-active,
+.wishlist__button.is-active {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.favorite__button.is-active svg {
+.favorite__button.is-active svg,
+.wishlist__button.is-active svg {
   fill: currentColor;
 }
 
@@ -870,9 +949,9 @@ textarea {
 
 .tracklist__item {
   display: grid;
-  grid-template-columns: 3ch 1fr auto;
+  grid-template-columns: 3ch 1fr auto auto;
   gap: 20px;
-  align-items: baseline;
+  align-items: center;
   padding: 14px 8px;
   border-bottom: 1px solid var(--line);
 }
@@ -886,6 +965,38 @@ textarea {
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.track-favorite {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--line-strong);
+  cursor: pointer;
+}
+
+.track-favorite svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.track-favorite:hover {
+  color: var(--muted);
+}
+
+.track-favorite.is-active {
+  color: var(--accent);
+}
+
+.track-favorite.is-active svg {
+  fill: currentColor;
 }
 
 /* ---------- Autenticação ---------- */
@@ -1037,6 +1148,56 @@ textarea {
 .diary-row__remove {
   flex-shrink: 0;
   font-size: 0.9rem;
+}
+
+/* ---------- Card para compartilhar ---------- */
+
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(21 19 13 / 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.share-overlay__panel {
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+  max-width: 420px;
+  width: 100%;
+}
+
+.share-overlay__canvas-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1080 / 1350;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 30px 60px -20px rgb(0 0 0 / 0.6);
+}
+
+.share-overlay__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.share-overlay__status {
+  color: var(--bg);
+  font-size: 0.95rem;
+}
+
+.share-overlay__actions {
+  display: flex;
+  gap: 12px;
 }
 
 /* ---------- Responsivo ---------- */
