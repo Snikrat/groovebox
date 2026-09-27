@@ -12,8 +12,11 @@ export function PopularAlbums() {
     <section className="section">
       <h2 className="section__title">Populares esta semana</h2>
       <div className="album-grid">
-        {popularQuery.data.map((item) => (
-          <AlbumCard key={item.album.id} album={item.album} />
+        {popularQuery.data.map((item, index) => (
+          <div className="chart-item" key={item.album.id}>
+            <span className="chart-item__rank">{String(index + 1).padStart(2, '0')}</span>
+            <AlbumCard album={item.album} />
+          </div>
         ))}
       </div>
     </section>

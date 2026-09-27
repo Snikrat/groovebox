@@ -14,8 +14,12 @@ export function GenrePage() {
 
   return (
     <section className="section">
-      <p className="eyebrow">Gênero</p>
       <h1 className="page-title">{genre}</h1>
+      {albumsQuery.data && (
+        <p className="page-subtitle">
+          {albumsQuery.data.length} {albumsQuery.data.length === 1 ? 'álbum' : 'álbuns'} no groovebox
+        </p>
+      )}
 
       {albumsQuery.isPending ? (
         <AlbumGridSkeleton />

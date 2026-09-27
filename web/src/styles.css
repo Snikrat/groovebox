@@ -1,22 +1,42 @@
+html {
+  /* Barra de rolagem vertical sempre visível, mesmo em páginas curtas sem
+     nada pra rolar. Sem isso, o espaço reservado pra ela varia de página
+     pra página, e tudo que é centralizado (o cabeçalho, por causa do
+     max-width+auto do container) se desloca uns pixels toda vez que se
+     navega entre uma página alta (com barra) e uma curta (sem barra) —
+     por exemplo a Biblioteca vazia. Uma barra sempre presente (ainda que
+     "parada" numa página curta) evita esse pulo sem deixar um vão vazio
+     onde ela deveria estar. */
+  overflow-y: scroll;
+}
+
 :root {
-  --bg: #f7f5f0;
-  --surface: #ffffff;
-  --ink: #18160f;
-  --ink-soft: #4a463d;
-  --muted: #8a8478;
-  --line: #e6e1d6;
-  --line-strong: #d4cec1;
-  --accent: #e0552b;
-  --accent-soft: #fbe6de;
+  /* Papel de miolo cinza-pedra, não creme — e tinta dupla de risografia: um
+     vermelho-magenta pra nota/curtir/ação primária, um azul-cobalto pra
+     link/tag/estado secundário. As duas tintas nunca competem no mesmo
+     elemento; cada uma tem seu papel fixo. */
+  --bg: #e9e7dd;
+  --surface: #f5f3ea;
+  --ink: #1a1a16;
+  --ink-soft: #4c493f;
+  --muted: #86816f;
+  --line: #cfc9b8;
+  --line-strong: #b0aa96;
+  --accent: #e2335f;
+  --accent-soft: #fbe0e8;
+  --press: #1448d8;
+  --press-soft: #e2e8fb;
   --danger: #b3261e;
   --success: #2f7a4b;
 
-  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
-  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
 
-  --radius: 10px;
-  --radius-sm: 6px;
-  --shadow: 0 1px 2px rgb(24 22 15 / 0.06), 0 8px 24px -12px rgb(24 22 15 / 0.25);
+  --radius: 4px;
+  --radius-sm: 2px;
+  --radius-pill: 999px;
+  --shadow: none;
 
   color-scheme: light;
 }
@@ -82,55 +102,56 @@ textarea {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgb(247 245 240 / 0.88);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
+  background: var(--ink);
+  border-bottom: 3px solid var(--accent);
 }
 
 .header__inner {
   display: flex;
   align-items: center;
   gap: 32px;
-  min-height: 64px;
+  min-height: 60px;
 }
 
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--bg);
 }
 
 .logo__mark {
-  width: 22px;
+  width: 12px;
   height: 22px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--accent) 0 28%, var(--ink) 30% 100%);
+  background: var(--accent);
 }
 
 .nav {
   display: flex;
-  gap: 24px;
-  font-size: 0.95rem;
+  gap: 22px;
+  font-size: 0.92rem;
+  font-weight: 500;
 }
 
 .nav a {
-  color: var(--muted);
+  color: #a8a496;
   padding-block: 4px;
   border-bottom: 2px solid transparent;
   transition: color 0.15s;
 }
 
 .nav a:hover {
-  color: var(--ink);
+  color: var(--bg);
 }
 
 .nav a.active {
-  color: var(--ink);
-  border-bottom-color: var(--accent);
+  color: var(--bg);
+  border-bottom-color: var(--press);
 }
 
 .header__search {
@@ -144,6 +165,7 @@ textarea {
   gap: 16px;
   margin-left: auto;
   font-size: 0.95rem;
+  color: #a8a496;
 }
 
 .header__search + .header__account {
@@ -156,11 +178,28 @@ textarea {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
+  color: var(--bg);
   transition: color 0.15s;
 }
 
 .header__user:hover {
   color: var(--accent);
+}
+
+.header__account .link-button {
+  color: #a8a496;
+}
+
+.header__account .link-button:hover {
+  color: var(--bg);
+}
+
+.header__account .notification-bell {
+  color: #a8a496;
+}
+
+.header__account .notification-bell:hover {
+  color: var(--bg);
 }
 
 .link-button {
@@ -209,8 +248,8 @@ textarea {
   min-width: 0;
   height: 40px;
   padding: 0 14px 0 40px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: var(--radius-pill);
   background: var(--surface);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -218,16 +257,15 @@ textarea {
 .search input:focus {
   outline: none;
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgb(24 22 15 / 0.08);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .search--large {
   max-width: 640px;
   padding: 6px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
   background: var(--surface);
-  box-shadow: var(--shadow);
 }
 
 .search--large .search__icon {
@@ -261,16 +299,20 @@ textarea {
   gap: 8px;
   height: 44px;
   padding: 0 20px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-pill);
   background: var(--surface);
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.88rem;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .button:hover:not(:disabled) {
-  border-color: var(--ink);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .button:disabled {
@@ -285,7 +327,9 @@ textarea {
 }
 
 .button--primary:hover:not(:disabled) {
-  background: #000;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
 }
 
 .button--ghost {
@@ -298,7 +342,8 @@ textarea {
 }
 
 .field__label {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -313,7 +358,7 @@ textarea {
 .textarea {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
   line-height: 1.6;
@@ -323,14 +368,14 @@ textarea {
 .textarea:focus {
   outline: none;
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgb(24 22 15 / 0.08);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .input {
   width: 100%;
   height: 46px;
   padding: 0 16px;
-  border: 1px solid var(--line-strong);
+  border: 1.5px solid var(--line-strong);
   border-radius: var(--radius);
   background: var(--surface);
 }
@@ -338,7 +383,7 @@ textarea {
 .input:focus {
   outline: none;
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgb(24 22 15 / 0.08);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .form-error {
@@ -435,18 +480,23 @@ textarea {
 .star-input__value {
   min-width: 2.5ch;
   margin-left: 10px;
-  font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
   font-weight: 600;
 }
 
 /* ---------- Capas e cards ---------- */
+/* As capas ficam com borda reta de tinta, como um selo colado na manga do
+   disco — sem sombra suave, sem levitar no hover. A cor da foto em si nunca
+   é alterada: é o único lugar onde a fotografia a cores quebra o sistema
+   duotone, porque é o produto. */
 
 .cover {
   display: block;
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
+  border: 1.5px solid var(--ink);
   border-radius: var(--radius-sm);
   background: var(--line);
 }
@@ -455,7 +505,7 @@ textarea {
   display: grid;
   place-items: center;
   color: var(--muted);
-  background: linear-gradient(135deg, #ebe6db, #ddd6c7);
+  background: repeating-linear-gradient(135deg, #ded9c8 0 2px, #d2ccb8 2px 4px);
 }
 
 .cover--placeholder svg {
@@ -469,6 +519,28 @@ textarea {
   gap: 36px 24px;
 }
 
+.chart-item {
+  position: relative;
+}
+
+.chart-item__rank {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 4px;
+  background: var(--ink);
+  border: 1.5px solid var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
 .album-card {
   display: grid;
   gap: 12px;
@@ -476,13 +548,11 @@ textarea {
 }
 
 .album-card .cover {
-  box-shadow: var(--shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s;
 }
 
 .album-card:hover .cover {
-  transform: translateY(-3px);
-  box-shadow: 0 2px 4px rgb(24 22 15 / 0.08), 0 16px 32px -14px rgb(24 22 15 / 0.35);
+  border-color: var(--accent);
 }
 
 .album-card__body {
@@ -492,7 +562,7 @@ textarea {
 
 .album-card__title {
   font-size: 0.98rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -509,13 +579,15 @@ textarea {
 }
 
 .album-card__caption {
-  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   color: var(--muted);
 }
 
 .album-card__meta {
   margin-top: 4px;
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
   color: var(--muted);
 }
 
@@ -599,9 +671,10 @@ textarea {
   margin-bottom: 32px;
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 2.4rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  line-height: 1.05;
 }
 
 .page-header {
@@ -620,6 +693,14 @@ textarea {
 .page-title em {
   font-style: italic;
   color: var(--ink-soft);
+}
+
+.page-subtitle {
+  margin-top: -22px;
+  margin-bottom: 32px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .profile-header {
@@ -647,11 +728,11 @@ textarea {
 }
 
 .profile-header__stats a:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .profile-header__stats a:hover strong {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .profile-header__actions {
@@ -681,20 +762,21 @@ textarea {
   gap: 12px;
   margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
 }
 
 .section__title {
   font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 .section > .section__title {
   margin-bottom: 24px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--ink);
 }
 
 .section__link {
@@ -704,10 +786,11 @@ textarea {
 }
 
 .section__link:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .count {
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   color: var(--muted);
 }
@@ -788,33 +871,39 @@ textarea {
 }
 
 .eyebrow {
-  font-size: 0.78rem;
+  display: inline-block;
+  padding: 3px 10px;
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink);
 }
 
 /* ---------- Home ---------- */
 
 .hero {
   display: grid;
-  justify-items: center;
-  gap: 16px;
-  padding-block: 56px 88px;
-  text-align: center;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 18px;
+  padding-block: 48px 72px;
+  text-align: left;
 }
 
 .hero__title {
+  max-width: 14ch;
   font-family: var(--font-display);
-  font-size: clamp(2.2rem, 6vw, 3.6rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-size: clamp(2.6rem, 7vw, 4.6rem);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 0.98;
 }
 
 .hero__subtitle {
-  margin-bottom: 20px;
+  margin-bottom: 6px;
   color: var(--ink-soft);
   font-size: 1.1rem;
 }
@@ -834,8 +923,7 @@ textarea {
 }
 
 .album__cover .cover {
-  box-shadow: 0 2px 6px rgb(24 22 15 / 0.08), 0 30px 60px -30px rgb(24 22 15 / 0.5);
-  border-radius: var(--radius);
+  border-width: 2px;
 }
 
 .album__extra-covers {
@@ -849,15 +937,13 @@ textarea {
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-  opacity: 0.85;
-  transition: opacity 0.15s, transform 0.15s;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.15s;
 }
 
 .album__extra-covers img:hover {
-  opacity: 1;
-  transform: translateY(-2px);
+  border-color: var(--press);
 }
 
 .album__info {
@@ -869,9 +955,9 @@ textarea {
 .album__title {
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.2rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1;
 }
 
 .album__artist {
@@ -885,10 +971,11 @@ textarea {
 }
 
 .album__artist--link:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .album__year {
+  font-family: var(--font-mono);
   color: var(--muted);
 }
 
@@ -898,7 +985,7 @@ textarea {
 }
 
 .album__year--link:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .album__genres {
@@ -913,25 +1000,27 @@ textarea {
 .tag {
   display: inline-block;
   padding: 4px 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  color: var(--ink-soft);
-  font-size: 0.82rem;
+  border: 1.5px solid var(--press);
+  border-radius: var(--radius-pill);
+  color: var(--press);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
 
 .tag--link {
-  transition: color 0.15s, border-color 0.15s;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .tag--link:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--press);
+  color: var(--bg);
 }
 
 .album__facts {
   margin-top: 10px;
   color: var(--muted);
   font-size: 0.9rem;
+  font-family: var(--font-mono);
 }
 
 .album__links {
@@ -947,7 +1036,7 @@ textarea {
 }
 
 .album__links a:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .album__average {
@@ -1387,7 +1476,7 @@ textarea {
 
 .review-card__author:hover,
 .review-card__album:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .review-card__album {
@@ -1469,7 +1558,7 @@ textarea {
 }
 
 .comment__author:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .comment__meta {
@@ -1891,7 +1980,7 @@ textarea {
 }
 
 .person-row__link:hover .person-row__name {
-  color: var(--accent);
+  color: var(--press);
 }
 
 /* ---------- Notificações ---------- */
@@ -1954,7 +2043,7 @@ textarea {
 }
 
 .notification-item__link:hover p {
-  color: var(--accent);
+  color: var(--press);
 }
 
 .notification-item__author {
@@ -1962,7 +2051,7 @@ textarea {
 }
 
 .notification-item__author:hover {
-  color: var(--accent);
+  color: var(--press);
 }
 
 /* ---------- Responsivo ---------- */
@@ -1978,21 +2067,51 @@ textarea {
   }
 }
 
+/* O cabeçalho precisa de mais espaço pra caber logo+nav+busca+conta numa
+   linha só (~1050px) do que o resto da página pra virar "mobile" — por
+   isso tem seu próprio breakpoint, bem mais largo que o @media de 640px
+   abaixo. Sem isso, uma janela "meio-termo" (por ex. ~700-900px, comum em
+   janela não maximizada) faz o cabeçalho estourar/cortar conteúdo, já que
+   ele não tem flex-wrap nenhum fora desses breakpoints. */
+@media (max-width: 1180px) {
+  .header__inner {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding-block: 12px;
+  }
+
+  .header__search {
+    order: 2;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .header__account {
+    order: 3;
+    margin-left: auto;
+  }
+}
+
 @media (max-width: 640px) {
   .container {
     padding-inline: 16px;
   }
 
-  .header__inner {
+  .nav {
+    flex-basis: 100%;
     flex-wrap: wrap;
-    gap: 12px 24px;
-    padding-block: 12px;
+    row-gap: 6px;
+  }
+
+  .header__account {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    row-gap: 6px;
+    margin-left: 0;
   }
 
   .header__search {
     order: 3;
-    width: 100%;
-    margin-left: 0;
   }
 
   .main {

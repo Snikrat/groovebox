@@ -35,7 +35,7 @@ export function Header() {
           </NavLink>
           <NavLink to="/feed">Feed</NavLink>
           <NavLink to="/people">Pessoas</NavLink>
-          <NavLink to="/library">Minha biblioteca</NavLink>
+          <NavLink to="/library">Biblioteca</NavLink>
           <NavLink to="/diary">Diário</NavLink>
         </nav>
 
